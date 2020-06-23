@@ -1,8 +1,8 @@
 {
-  "name": "js-boilerplate-component",
+  "name": "3d-component",
   "version": "1.0.1",
   "main": "index.js",
-  "repository": "https://github.com/pandasuite/js-boilerplate-component.git",
+  "repository": "https://github.com/pandasuite/3d-component.git",
   "private": true,
   "scripts": {
     "start": "webpack-dev-server --open",
@@ -21,6 +21,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
+    "@google/model-viewer": "^1.0.0",
     "pandasuite-bridge": "^4.2.1"
   },
   "release-it": {

@@ -7,88 +7,200 @@
     "actions": [
       {
         "id": "toMarker",
-        "name": "Change Image",
+        "name": "Change Camera",
         "locale_name": {
-          "fr_FR": "Change Image"
-        },
-        "params": [
-          { "id": "useless", "name": "Useless", "locale_name": {"fr_FR": "Inutile"}, "type": "Boolean" }
-        ]
+          "fr_FR": "Changement Caméra"
+        }
       }
     ],
     "events": [
       {
         "id": "triggerMarker",
-        "name": "Image",
+        "name": "Camera",
         "locale_name": {
-          "fr_FR": "Image"
+          "fr_FR": "Caméra"
         }
       }
     ],
     "markers": [
       {
-        "params": [
-          { "id": "src", "name": "Source", "locale_name": {"fr_FR": "Source"}, "type": "String" }
-        ]
+        "hideSystemId": true
       }
-    ]
+    ],
+    "defaults": {
+      "markers": {
+        "description": {
+          "value": "[%s, %s, %s]",
+          "args": [
+            {
+              "key": "theta",
+              "format": "0.[00000]"
+            },
+            {
+              "key": "phi",
+              "format": "0.[00000]"
+            },
+            {
+              "key": "radius",
+              "format": "0.[00000]"
+            }
+          ]
+        }
+      }
+    }
   },
 
   "properties": [
     {
-      "id": "searchTerm",
-      "name": "Search Term",
+      "id": "path",
+      "name": "File name",
       "locale_name": {
-        "fr_FR": "Terme de recherche"
+        "fr_FR": "Nom du fichier"
       },
       "type": "String",
-      "value": "panda"
+      "value": "Astronaut.glb"
+    },
+    {
+      "id": "arMode",
+      "name": "Enable AR experiences (if available)",
+      "locale_name": {
+        "fr_FR": "Autoriser les expériences AR (si disponible)"
+      },
+      "type": "Boolean",
+      "value": true,
+      "separator": true
+    },
+    {
+      "id": "arPath",
+      "name": "USDZ File name (iOS)",
+      "locale_name": {
+        "fr_FR": "Nom du fichier USDZ (iOS)"
+      },
+      "type": "String",
+      "value": "Astronaut.usdz",
+      "activable": false
+    },
+    {
+      "id": "cameraControls",
+      "name": "Camera controls",
+      "locale_name": {
+        "fr_FR": "Contrôle de la caméra"
+      },
+      "type": "Boolean",
+      "value": true,
+      "separator": true
+    },
+    {
+      "id": "animateMarkers",
+      "name": "Animate markers position",
+      "locale_name": {
+        "fr_FR": "Position des marqueurs animés"
+      },
+      "type": "Boolean",
+      "value": true
+    },
+    {
+      "id": "interactionPrompt",
+      "name": "Interaction prompt",
+      "locale_name": {
+        "fr_FR": "Inviter à l'interaction"
+      },
+      "type": "Boolean",
+      "value": true,
+      "separator": true
+    },
+    {
+      "id": "interactionPromptThreshold",
+      "name": "Interaction Prompt Delay",
+      "locale_name": {
+        "fr_FR": "Délai avant invitation à l'intéraction"
+      },
+      "type": "Integer",
+      "value": 3000
+    },
+    {
+      "id": "autoRotate",
+      "name": "Auto Rotate",
+      "locale_name": {
+        "fr_FR": "Rotation automatique"
+      },
+      "type": "Boolean",
+      "value": false,
+      "separator": true
+    },
+    {
+      "id": "autoRotateDelay",
+      "name": "Auto Rotate Delay",
+      "locale_name": {
+        "fr_FR": "Délai avant la rotation automatique"
+      },
+      "type": "Integer",
+      "value": 3000
     }
   ],
 
   "events": [
     {
-      "id": "imageChanged",
-      "name": "Image Changed",
+      "id": "modelLoaded",
+      "name": "Model Loaded",
       "locale_name": {
-        "fr_FR": "Image Changée"
+        "fr_FR": "Modèle chargé"
+      }
+    },
+    {
+      "id": "modelError",
+      "name": "Model Error",
+      "locale_name": {
+        "fr_FR": "Erreur de modèle"
+      }
+    },
+    {
+      "id": "onStartingPlay",
+      "name": "Starting play",
+      "locale_name": {
+        "fr_FR": "Commence lecture"
+      }
+    },
+    {
+      "id": "onPausePlaying",
+      "name": "Pause playing",
+      "locale_name": {
+        "fr_FR": "Mise en pause"
       }
     }
   ],
 
   "actions": [
     {
-      "id": "changeColor",
-      "name": "Change Color",
-      "params": [
-        {
-          "id": "backgroundColor",
-          "name": "Background Color",
-          "locale_name": {
-            "fr_FR": "Couleur de fond"
-          },
-          "type": "String",
-          "value": "#FFFFFF"
-        }
-      ]
+      "id": "play",
+      "name": "Play",
+      "locale_name": {
+        "fr_FR": "Lecture"
+      }
+    },
+    {
+      "id": "pause",
+      "name": "Pause",
+      "locale_name": {
+        "fr_FR": "Mettre en pause"
+      }
     }
   ],
 
   "synchronization": [
     {
-      "id": "synchroImages",
-      "name": "Synchronize images",
+      "id": "synchroMarkers",
+      "name": "Synchronize markers",
       "locale_name": {
-        "fr_FR": "Synchroniser images"
+        "fr_FR": "Synchroniser markers"
       }
     }
   ],
 
   "resources": [
     {
-      "id": "my_image.png",
-      "type": "Image",
-      "localization": false
+      "id": "assets.zip",
+      "type": "Zip"
     }
   ]
 }
