@@ -102,6 +102,10 @@ PandaBridge.init(() => {
     document.querySelector('model-viewer').pause();
   });
 
+  PandaBridge.listen('activateAR', () => {
+    document.querySelector('model-viewer').activateAR();
+  });
+
   PandaBridge.synchronize('synchroMarkers', (percent) => {
     const localPercent = ((markers.length - 1) * percent) / 100;
 

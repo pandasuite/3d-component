@@ -184,6 +184,13 @@
       "locale_name": {
         "fr_FR": "Mettre en pause"
       }
+    },
+    {
+      "id": "activateAR",
+      "name": "Activate AR",
+      "locale_name": {
+        "fr_FR": "Activer l'AR"
+      }
     }
   ],
 
