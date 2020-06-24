@@ -1,6 +1,6 @@
 {
   "name": "3d-component",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "index.js",
   "repository": "https://github.com/pandasuite/3d-component.git",
   "private": true,
