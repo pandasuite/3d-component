@@ -27,11 +27,20 @@ function myInit() {
   });
 
   modelViewer.setAttribute('src', modelUrl);
-
-  modelViewer.setAttribute('camera-controls', properties.cameraControls);
-  modelViewer.setAttribute('ar', properties.arMode);
   modelViewer.setAttribute('interaction-prompt', properties.interactionPrompt ? 'auto' : 'none');
   modelViewer.setAttribute('interaction-prompt-threshold', properties.interactionPromptThreshold);
+
+  if (properties.cameraControls) {
+    modelViewer.setAttribute('camera-controls', true);
+  } else {
+    modelViewer.removeAttribute('camera-controls');
+  }
+
+  if (properties.arMode) {
+    modelViewer.setAttribute('ar', true);
+  } else {
+    modelViewer.removeAttribute('ar');
+  }
 
   if (properties.autoRotate) {
     modelViewer.setAttribute('auto-rotate', true);
