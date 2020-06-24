@@ -86,6 +86,10 @@ PandaBridge.init(() => {
     myInit();
   });
 
+  PandaBridge.getScreenshot((resultCallback) => {
+    resultCallback(document.querySelector('model-viewer').toDataURL('image/png', 1));
+  });
+
   /* Markers */
 
   PandaBridge.getSnapshotData(() => {
