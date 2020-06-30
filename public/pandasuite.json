@@ -7,18 +7,18 @@
     "actions": [
       {
         "id": "toMarker",
-        "name": "Change Camera",
+        "name": "Change Position",
         "locale_name": {
-          "fr_FR": "Changement Caméra"
+          "fr_FR": "Changement position"
         }
       }
     ],
     "events": [
       {
         "id": "triggerMarker",
-        "name": "Camera",
+        "name": "Position",
         "locale_name": {
-          "fr_FR": "Caméra"
+          "fr_FR": "Position"
         }
       }
     ],
@@ -62,9 +62,9 @@
     },
     {
       "id": "arMode",
-      "name": "Enable AR experiences (if available)",
+      "name": "Enable AR experience (if available)",
       "locale_name": {
-        "fr_FR": "Autoriser les expériences AR (si disponible)"
+        "fr_FR": "Activer l'expérience AR (si disponible)"
       },
       "type": "Boolean",
       "value": true,
@@ -94,7 +94,7 @@
       "id": "animateMarkers",
       "name": "Animate markers position",
       "locale_name": {
-        "fr_FR": "Position des marqueurs animés"
+        "fr_FR": "Transition animée entre marqueurs"
       },
       "type": "Boolean",
       "value": true
@@ -103,7 +103,7 @@
       "id": "interactionPrompt",
       "name": "Interaction prompt",
       "locale_name": {
-        "fr_FR": "Inviter à l'interaction"
+        "fr_FR": "Inciter à l'action"
       },
       "type": "Boolean",
       "value": true,
@@ -111,18 +111,18 @@
     },
     {
       "id": "interactionPromptThreshold",
-      "name": "Interaction Prompt Delay",
+      "name": "Delay",
       "locale_name": {
-        "fr_FR": "Délai avant invitation à l'intéraction"
+        "fr_FR": "Délai"
       },
       "type": "Integer",
       "value": 3000
     },
     {
       "id": "autoRotate",
-      "name": "Auto Rotate",
+      "name": "Enable auto rotate",
       "locale_name": {
-        "fr_FR": "Rotation automatique"
+        "fr_FR": "Activer la rotation automatique"
       },
       "type": "Boolean",
       "value": false,
@@ -130,9 +130,9 @@
     },
     {
       "id": "autoRotateDelay",
-      "name": "Auto Rotate Delay",
+      "name": "Delay",
       "locale_name": {
-        "fr_FR": "Délai avant la rotation automatique"
+        "fr_FR": "Délai"
       },
       "type": "Integer",
       "value": 3000
