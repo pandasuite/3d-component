@@ -1,5 +1,6 @@
 import PandaBridge from 'pandasuite-bridge';
 
+import 'focus-visible';
 import '@google/model-viewer/dist/model-viewer';
 
 let properties = null;
