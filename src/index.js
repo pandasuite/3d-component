@@ -37,6 +37,12 @@ function myInit() {
     modelViewer.removeAttribute('camera-controls');
   }
 
+  if (properties.lookInside) {
+    modelViewer.setAttribute('min-camera-orbit', 'auto auto 0m');
+  } else {
+    modelViewer.removeAttribute('min-camera-orbit');
+  }
+
   if (properties.arMode) {
     modelViewer.setAttribute('ar', true);
   } else {

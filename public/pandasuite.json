@@ -100,6 +100,15 @@
       "value": true
     },
     {
+      "id": "lookInside",
+      "name": "Allow look inside",
+      "locale_name": {
+        "fr_FR": "Permettre de regarder à l'intérieur"
+      },
+      "type": "Boolean",
+      "value": false
+    },
+    {
       "id": "interactionPrompt",
       "name": "Interaction prompt",
       "locale_name": {
