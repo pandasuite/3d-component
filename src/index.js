@@ -26,7 +26,9 @@ function myInit() {
   modelViewer.addEventListener('model-visibility', (e) => {
     if (e.detail.visible) {
       requestAnimationFrame(() => {
-        PandaBridge.takeScreenshot();
+        if (PandaBridge.isStudio) {
+          PandaBridge.takeScreenshot();
+        }
       });
     }
   });
@@ -91,7 +93,9 @@ function goToMarker(marker, notAnimated, takeScreenshot) {
 
   if (takeScreenshot) {
     setTimeout(() => {
-      PandaBridge.takeScreenshot();
+      if (PandaBridge.isStudio) {
+        PandaBridge.takeScreenshot();
+      }
     }, 300);
   }
 }
