@@ -10,9 +10,25 @@ function myInit() {
   const modelViewer = document.querySelector('model-viewer');
   const modelUrl = `${PandaBridge.resolvePath('assets.zip', './')}${properties.path}`;
 
+  PandaBridge.unlisten(PandaBridge.GET_SCREENSHOT);
+  PandaBridge.getScreenshot(async (resultCallback) => {
+    const blob = await modelViewer.toBlob({ idealAspect: false });
+    const fileReader = new FileReader();
+    fileReader.onload = (e) => { resultCallback(e.target.result); };
+    fileReader.readAsDataURL(blob);
+  });
+
   modelViewer.addEventListener('load', () => {
     PandaBridge.send(PandaBridge.INITIALIZED);
     PandaBridge.send('modelLoaded');
+  });
+
+  modelViewer.addEventListener('model-visibility', (e) => {
+    if (e.detail.visible) {
+      requestAnimationFrame(() => {
+        PandaBridge.takeScreenshot();
+      });
+    }
   });
 
   modelViewer.addEventListener('error', () => {
@@ -64,7 +80,7 @@ function myInit() {
   }
 }
 
-function goToMarker(marker, notAnimated) {
+function goToMarker(marker, notAnimated, takeScreenshot) {
   const { theta, phi, radius } = marker;
   const modelViewer = document.querySelector('model-viewer');
 
@@ -72,6 +88,12 @@ function goToMarker(marker, notAnimated) {
     modelViewer.jumpCameraToGoal();
   }
   modelViewer.cameraOrbit = `${theta}rad ${phi}rad ${radius}m`;
+
+  if (takeScreenshot) {
+    setTimeout(() => {
+      PandaBridge.takeScreenshot();
+    }, 300);
+  }
 }
 
 PandaBridge.init(() => {
@@ -109,7 +131,9 @@ PandaBridge.init(() => {
   });
 
   PandaBridge.setSnapshotData((pandaData) => {
-    goToMarker(pandaData.data, !properties.animateMarkers);
+    const { isDefault } = pandaData.params;
+
+    goToMarker(pandaData.data, !isDefault && !properties.animateMarkers, isDefault);
   });
 
   /* Actions */
