@@ -109,6 +109,15 @@
       "value": false
     },
     {
+      "id": "pan",
+      "name": "Allow pan",
+      "locale_name": {
+        "fr_FR": "Permettre le déplacement"
+      },
+      "type": "Boolean",
+      "value": false
+    },
+    {
       "id": "interactionPrompt",
       "name": "Interaction prompt",
       "locale_name": {
@@ -175,6 +184,20 @@
       "name": "Pause playing",
       "locale_name": {
         "fr_FR": "Mise en pause"
+      }
+    },
+    {
+      "id": "onTouchStart",
+      "name": "Start of user interaction",
+      "locale_name": {
+        "fr_FR": "Début de l’interaction utilisateur"
+      }
+    },
+    {
+      "id": "onTouchEnd",
+      "name": "End of user interaction",
+      "locale_name": {
+        "fr_FR": "Fin de l’interaction utilisateur"
       }
     }
   ],

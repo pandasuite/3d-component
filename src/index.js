@@ -80,6 +80,116 @@ function myInit() {
   } else {
     modelViewer.removeAttribute('ios-src');
   }
+
+  // eslint-disable-next-line no-use-before-define
+  activatePanning();
+}
+
+function activatePanning() {
+  const modelViewer = document.querySelector('model-viewer');
+  const tapDistance = 2;
+  let panning = false;
+  let panX;
+  let panY;
+  let startX;
+  let startY;
+  let lastX;
+  let lastY;
+  let metersPerPixel;
+
+  document.addEventListener('contextmenu', (event) => event.preventDefault());
+
+  const startPan = () => {
+    const orbit = modelViewer.getCameraOrbit();
+    const { theta, phi, radius } = orbit;
+    metersPerPixel = (0.75 * radius) / modelViewer.getBoundingClientRect().height;
+    panX = [-Math.cos(theta), 0, Math.sin(theta)];
+    panY = [
+      -Math.cos(phi) * Math.sin(theta),
+      Math.sin(phi),
+      -Math.cos(phi) * Math.cos(theta),
+    ];
+    modelViewer.interactionPrompt = 'none';
+  };
+
+  const movePan = (thisX, thisY) => {
+    const dx = (thisX - lastX) * metersPerPixel;
+    const dy = (thisY - lastY) * metersPerPixel;
+    lastX = thisX;
+    lastY = thisY;
+
+    const target = modelViewer.getCameraTarget();
+    target.x += dx * panX[0] + dy * panY[0];
+    target.y += dx * panX[1] + dy * panY[1];
+    target.z += dx * panX[2] + dy * panY[2];
+    modelViewer.cameraTarget = `${target.x}m ${target.y}m ${target.z}m`;
+  };
+
+  const recenter = (event) => {
+    panning = false;
+    if (Math.abs(event.clientX - startX) > tapDistance
+        || Math.abs(event.clientY - startY) > tapDistance) return;
+    const rect = modelViewer.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const hit = modelViewer.positionAndNormalFromPoint(x, y);
+    modelViewer.cameraTarget = hit == null ? 'auto auto auto' : hit.position.toString();
+  };
+
+  modelViewer.addEventListener('mousedown', (event) => {
+    PandaBridge.send('onTouchStart');
+    startX = event.clientX;
+    startY = event.clientY;
+    panning = event.button === 2 || event.ctrlKey || event.metaKey
+        || event.shiftKey;
+    if (!panning || !properties.pan) return;
+
+    lastX = startX;
+    lastY = startY;
+    startPan();
+    event.stopPropagation();
+  }, true);
+
+  modelViewer.addEventListener('touchstart', (event) => {
+    PandaBridge.send('onTouchStart');
+    startX = event.touches[0].clientX;
+    startY = event.touches[0].clientY;
+    panning = event.touches.length === 2;
+    if (!panning || !properties.pan) return;
+
+    const { touches } = event;
+    lastX = 0.5 * (touches[0].clientX + touches[1].clientX);
+    lastY = 0.5 * (touches[0].clientY + touches[1].clientY);
+    startPan();
+  }, true);
+
+  modelViewer.addEventListener('mousemove', (event) => {
+    if (!panning || !properties.pan) return;
+
+    movePan(event.clientX, event.clientY);
+    event.stopPropagation();
+  }, true);
+
+  modelViewer.addEventListener('touchmove', (event) => {
+    if (!panning || event.touches.length !== 2 || !properties.pan) return;
+
+    const { touches } = event;
+    const thisX = 0.5 * (touches[0].clientX + touches[1].clientX);
+    const thisY = 0.5 * (touches[0].clientY + touches[1].clientY);
+    movePan(thisX, thisY);
+  }, true);
+
+  document.addEventListener('mouseup', (event) => {
+    PandaBridge.send('onTouchEnd');
+    recenter(event);
+  }, true);
+
+  document.addEventListener('touchend', (event) => {
+    PandaBridge.send('onTouchEnd');
+    if (event.touches.length === 0) {
+      recenter(event.changedTouches[0]);
+    }
+  }, true);
 }
 
 function goToMarker(marker, notAnimated, takeScreenshot) {
