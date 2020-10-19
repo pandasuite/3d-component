@@ -193,13 +193,14 @@ function activatePanning() {
 }
 
 function goToMarker(marker, notAnimated, takeScreenshot) {
-  const { theta, phi, radius } = marker;
   const modelViewer = document.querySelector('model-viewer');
+  const { orbit, target } = marker;
 
   if (notAnimated) {
     modelViewer.jumpCameraToGoal();
   }
-  modelViewer.cameraOrbit = `${theta}rad ${phi}rad ${radius}m`;
+  modelViewer.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius}m`;
+  modelViewer.cameraTarget = `${target.x}m ${target.y}m ${target.z}m`;
 
   if (takeScreenshot) {
     setTimeout(() => {
@@ -236,10 +237,12 @@ PandaBridge.init(() => {
   /* Markers */
 
   PandaBridge.getSnapshotData(() => {
-    const orbit = document.querySelector('model-viewer').getCameraOrbit();
+    const modelViewer = document.querySelector('model-viewer');
+    const orbit = modelViewer.getCameraOrbit();
+    const target = modelViewer.getCameraTarget();
 
-    if (orbit) {
-      return orbit;
+    if (orbit && target) {
+      return { orbit, target };
     }
     return null;
   });
@@ -277,9 +280,22 @@ PandaBridge.init(() => {
       const nextMarker = markers[markerIndex + 1];
 
       marker = {
-        theta: currentMarker.theta + ((nextMarker.theta - currentMarker.theta) * rest),
-        phi: currentMarker.phi + ((nextMarker.phi - currentMarker.phi) * rest),
-        radius: currentMarker.radius + ((nextMarker.radius - currentMarker.radius) * rest),
+        orbit: {
+          theta: currentMarker.orbit.theta
+            + ((nextMarker.orbit.theta - currentMarker.orbit.theta) * rest),
+          phi: currentMarker.orbit.phi
+            + ((nextMarker.orbit.phi - currentMarker.orbit.phi) * rest),
+          radius: currentMarker.orbit.radius
+            + ((nextMarker.orbit.radius - currentMarker.orbit.radius) * rest),
+        },
+        target: {
+          x: currentMarker.target.x
+            + ((nextMarker.target.x - currentMarker.target.x) * rest),
+          y: currentMarker.target.y
+            + ((nextMarker.target.y - currentMarker.target.y) * rest),
+          z: currentMarker.target.z
+            + ((nextMarker.target.z - currentMarker.target.z) * rest),
+        },
       };
     }
     goToMarker(marker);
