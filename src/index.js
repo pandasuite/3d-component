@@ -194,13 +194,14 @@ function activatePanning() {
 
 function goToMarker(marker, notAnimated, takeScreenshot) {
   const modelViewer = document.querySelector('model-viewer');
-  const { orbit, target } = marker;
+  const { orbit, target, fieldOfView } = marker;
 
   if (notAnimated) {
     modelViewer.jumpCameraToGoal();
   }
   modelViewer.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius}m`;
   modelViewer.cameraTarget = `${target.x}m ${target.y}m ${target.z}m`;
+  modelViewer.fieldOfView = fieldOfView;
 
   if (takeScreenshot) {
     setTimeout(() => {
@@ -240,9 +241,10 @@ PandaBridge.init(() => {
     const modelViewer = document.querySelector('model-viewer');
     const orbit = modelViewer.getCameraOrbit();
     const target = modelViewer.getCameraTarget();
+    const fieldOfView = modelViewer.getFieldOfView();
 
     if (orbit && target) {
-      return { orbit, target };
+      return { orbit, target, fieldOfView };
     }
     return null;
   });
@@ -296,6 +298,8 @@ PandaBridge.init(() => {
           z: currentMarker.target.z
             + ((nextMarker.target.z - currentMarker.target.z) * rest),
         },
+        fieldOfView: currentMarker.fieldOfView
+          + ((nextMarker.fieldOfView - currentMarker.fieldOfView) * rest),
       };
     }
     goToMarker(marker);
