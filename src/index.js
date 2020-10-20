@@ -45,6 +45,12 @@ function myInit() {
     PandaBridge.send('onPausePlaying');
   });
 
+  modelViewer.addEventListener('ar-status', (event) => {
+    if (event.detail.status === 'failed') {
+      PandaBridge.send('arError');
+    }
+  });
+
   modelViewer.setAttribute('src', modelUrl);
   modelViewer.setAttribute('interaction-prompt', properties.interactionPrompt ? 'auto' : 'none');
   modelViewer.setAttribute('interaction-prompt-threshold', properties.interactionPromptThreshold);
@@ -266,7 +272,13 @@ PandaBridge.init(() => {
   });
 
   PandaBridge.listen('activateAR', () => {
-    document.querySelector('model-viewer').activateAR();
+    const modelViewer = document.querySelector('model-viewer');
+
+    if (!modelViewer.canActivateAR) {
+      PandaBridge.send('arError');
+    } else {
+      modelViewer.activateAR();
+    }
   });
 
   PandaBridge.synchronize('synchroMarkers', (percent) => {

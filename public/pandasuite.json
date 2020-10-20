@@ -199,6 +199,13 @@
       "locale_name": {
         "fr_FR": "Fin de l’interaction utilisateur"
       }
+    },
+    {
+      "id": "arError",
+      "name": "AR Error",
+      "locale_name": {
+        "fr_FR": "Erreur d'AR"
+      }
     }
   ],
 
