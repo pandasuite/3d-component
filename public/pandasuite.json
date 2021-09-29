@@ -62,9 +62,9 @@
     },
     {
       "id": "arMode",
-      "name": "Enable AR experience (if available)",
+      "name": "AR (if available)",
       "locale_name": {
-        "fr_FR": "Activer l'expérience AR (si disponible)"
+        "fr_FR": "AR (si disponible)"
       },
       "type": "Boolean",
       "value": true,
@@ -138,9 +138,9 @@
     },
     {
       "id": "autoRotate",
-      "name": "Enable auto rotate",
+      "name": "Auto rotate",
       "locale_name": {
-        "fr_FR": "Activer la rotation automatique"
+        "fr_FR": "Rotation automatique"
       },
       "type": "Boolean",
       "value": false,
