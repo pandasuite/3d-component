@@ -21,9 +21,9 @@
     "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
-    "@google/model-viewer": "^1.7.2",
+    "@google/model-viewer": "^1.8.0",
     "focus-visible": "^5.1.0",
-    "pandasuite-bridge": "^4.2.3"
+    "pandasuite-bridge": "^4.3.3"
   },
   "release-it": {
     "github": {
