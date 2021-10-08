@@ -80,7 +80,7 @@ function myInit() {
     modelViewer.removeAttribute('auto-rotate');
   }
 
-  if (properties.arPath) {
+  if (properties.arMode && properties.arModeIOS) {
     const arModelUrl = `${PandaBridge.resolvePath('assets.zip', './')}${properties.arPath}`;
     modelViewer.setAttribute('ios-src', arModelUrl);
   } else {

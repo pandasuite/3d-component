@@ -58,7 +58,8 @@
         "fr_FR": "Nom du fichier"
       },
       "type": "String",
-      "value": "Astronaut.glb"
+      "value": "Astronaut.glb",
+      "bindable": true
     },
     {
       "id": "arMode",
@@ -71,14 +72,25 @@
       "separator": true
     },
     {
-      "id": "arPath",
-      "name": "USDZ File name (iOS)",
+      "id": "arModeIOS",
+      "name": "iOS support",
       "locale_name": {
-        "fr_FR": "Nom du fichier USDZ (iOS)"
+        "fr_FR": "Support iOS"
+      },
+      "type": "Boolean",
+      "value": false,
+      "hidden": "!properties.arMode.value"
+    },
+    {
+      "id": "arPath",
+      "name": "USDZ File name",
+      "locale_name": {
+        "fr_FR": "Nom du fichier USDZ"
       },
       "type": "String",
       "value": "Astronaut.usdz",
-      "activable": false
+      "hidden": "!properties.arMode.value || !properties.arModeIOS.value",
+      "bindable": true
     },
     {
       "id": "cameraControls",
@@ -88,7 +100,8 @@
       },
       "type": "Boolean",
       "value": true,
-      "separator": true
+      "separator": true,
+      "bindable": true
     },
     {
       "id": "animateMarkers",
@@ -97,7 +110,8 @@
         "fr_FR": "Transition animée entre marqueurs"
       },
       "type": "Boolean",
-      "value": true
+      "value": true,
+      "bindable": true
     },
     {
       "id": "lookInside",
@@ -106,7 +120,8 @@
         "fr_FR": "Permettre de regarder à l'intérieur"
       },
       "type": "Boolean",
-      "value": false
+      "value": false,
+      "bindable": true
     },
     {
       "id": "pan",
@@ -115,7 +130,8 @@
         "fr_FR": "Permettre le déplacement"
       },
       "type": "Boolean",
-      "value": false
+      "value": false,
+      "bindable": true
     },
     {
       "id": "interactionPrompt",
@@ -134,7 +150,8 @@
         "fr_FR": "Délai"
       },
       "type": "Integer",
-      "value": 3000
+      "value": 3000,
+      "hidden": "!properties.interactionPrompt.value"
     },
     {
       "id": "autoRotate",
@@ -153,7 +170,8 @@
         "fr_FR": "Délai"
       },
       "type": "Integer",
-      "value": 3000
+      "value": 3000,
+      "hidden": "!properties.autoRotate.value"
     }
   ],
 
