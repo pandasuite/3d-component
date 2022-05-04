@@ -33,15 +33,15 @@
           "value": "[%s, %s, %s]",
           "args": [
             {
-              "key": "theta",
+              "key": "orbit.theta",
               "format": "0.[00000]"
             },
             {
-              "key": "phi",
+              "key": "orbit.phi",
               "format": "0.[00000]"
             },
             {
-              "key": "radius",
+              "key": "orbit.radius",
               "format": "0.[00000]"
             }
           ]
