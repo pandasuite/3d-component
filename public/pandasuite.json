@@ -58,7 +58,7 @@
         "fr_FR": "Nom du fichier"
       },
       "type": "String",
-      "value": "Astronaut.glb",
+      "placeholder": "Astronaut.glb",
       "bindable": true,
       "required": true
     },
@@ -89,7 +89,7 @@
         "fr_FR": "Nom du fichier USDZ"
       },
       "type": "String",
-      "value": "Astronaut.usdz",
+      "placeholder": "Astronaut.usdz",
       "hidden": "!properties.arMode.value || !properties.arModeIOS.value",
       "bindable": true
     },
