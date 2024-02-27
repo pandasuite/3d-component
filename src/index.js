@@ -8,13 +8,17 @@ let markers = null;
 
 function myInit() {
   const modelViewer = document.querySelector('model-viewer');
-  const modelUrl = `${PandaBridge.resolvePath('assets.zip', './')}${properties.path}`;
+  const modelUrl = `${PandaBridge.resolvePath('assets.zip', './')}${
+    properties.path
+  }`;
 
   PandaBridge.unlisten(PandaBridge.GET_SCREENSHOT);
   PandaBridge.getScreenshot(async (resultCallback) => {
     const blob = await modelViewer.toBlob({ idealAspect: false });
     const fileReader = new FileReader();
-    fileReader.onload = (e) => { resultCallback(e.target.result); };
+    fileReader.onload = (e) => {
+      resultCallback(e.target.result);
+    };
     fileReader.readAsDataURL(blob);
   });
 
@@ -52,8 +56,14 @@ function myInit() {
   });
 
   modelViewer.setAttribute('src', modelUrl);
-  modelViewer.setAttribute('interaction-prompt', properties.interactionPrompt ? 'auto' : 'none');
-  modelViewer.setAttribute('interaction-prompt-threshold', properties.interactionPromptThreshold);
+  modelViewer.setAttribute(
+    'interaction-prompt',
+    properties.interactionPrompt ? 'auto' : 'none',
+  );
+  modelViewer.setAttribute(
+    'interaction-prompt-threshold',
+    properties.interactionPromptThreshold,
+  );
 
   if (properties.cameraControls) {
     modelViewer.setAttribute('camera-controls', true);
@@ -81,7 +91,9 @@ function myInit() {
   }
 
   if (properties.arMode && properties.arModeIOS) {
-    const arModelUrl = `${PandaBridge.resolvePath('assets.zip', './')}${properties.arPath}`;
+    const arModelUrl = `${PandaBridge.resolvePath('assets.zip', './')}${
+      properties.arPath
+    }`;
     modelViewer.setAttribute('ios-src', arModelUrl);
   } else {
     modelViewer.removeAttribute('ios-src');
@@ -108,7 +120,8 @@ function activatePanning() {
   const startPan = () => {
     const orbit = modelViewer.getCameraOrbit();
     const { theta, phi, radius } = orbit;
-    metersPerPixel = (0.75 * radius) / modelViewer.getBoundingClientRect().height;
+    metersPerPixel =
+      (0.75 * radius) / modelViewer.getBoundingClientRect().height;
     panX = [-Math.cos(theta), 0, Math.sin(theta)];
     panY = [
       -Math.cos(phi) * Math.sin(theta),
@@ -133,69 +146,98 @@ function activatePanning() {
 
   const recenter = (event) => {
     panning = false;
-    if (Math.abs(event.clientX - startX) > tapDistance
-        || Math.abs(event.clientY - startY) > tapDistance) return;
+    if (
+      Math.abs(event.clientX - startX) > tapDistance ||
+      Math.abs(event.clientY - startY) > tapDistance
+    ) {
+      return;
+    }
     const rect = modelViewer.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
     const hit = modelViewer.positionAndNormalFromPoint(x, y);
-    modelViewer.cameraTarget = hit == null ? 'auto auto auto' : hit.position.toString();
+    modelViewer.cameraTarget =
+      hit == null ? 'auto auto auto' : hit.position.toString();
   };
 
-  modelViewer.addEventListener('mousedown', (event) => {
-    PandaBridge.send('onTouchStart');
-    startX = event.clientX;
-    startY = event.clientY;
-    panning = event.button === 2 || event.ctrlKey || event.metaKey
-        || event.shiftKey;
-    if (!panning || !properties.pan) return;
+  modelViewer.addEventListener(
+    'mousedown',
+    (event) => {
+      PandaBridge.send('onTouchStart');
+      startX = event.clientX;
+      startY = event.clientY;
+      panning =
+        event.button === 2 || event.ctrlKey || event.metaKey || event.shiftKey;
+      if (!panning || !properties.pan) return;
 
-    lastX = startX;
-    lastY = startY;
-    startPan();
-    event.stopPropagation();
-  }, true);
+      lastX = startX;
+      lastY = startY;
+      startPan();
+      event.stopPropagation();
+    },
+    true,
+  );
 
-  modelViewer.addEventListener('touchstart', (event) => {
-    PandaBridge.send('onTouchStart');
-    startX = event.touches[0].clientX;
-    startY = event.touches[0].clientY;
-    panning = event.touches.length === 2;
-    if (!panning || !properties.pan) return;
+  modelViewer.addEventListener(
+    'touchstart',
+    (event) => {
+      PandaBridge.send('onTouchStart');
+      startX = event.touches[0].clientX;
+      startY = event.touches[0].clientY;
+      panning = event.touches.length === 2;
+      if (!panning || !properties.pan) return;
 
-    const { touches } = event;
-    lastX = 0.5 * (touches[0].clientX + touches[1].clientX);
-    lastY = 0.5 * (touches[0].clientY + touches[1].clientY);
-    startPan();
-  }, true);
+      const { touches } = event;
+      lastX = 0.5 * (touches[0].clientX + touches[1].clientX);
+      lastY = 0.5 * (touches[0].clientY + touches[1].clientY);
+      startPan();
+    },
+    true,
+  );
 
-  modelViewer.addEventListener('mousemove', (event) => {
-    if (!panning || !properties.pan) return;
+  modelViewer.addEventListener(
+    'mousemove',
+    (event) => {
+      if (!panning || !properties.pan) return;
 
-    movePan(event.clientX, event.clientY);
-    event.stopPropagation();
-  }, true);
+      movePan(event.clientX, event.clientY);
+      event.stopPropagation();
+    },
+    true,
+  );
 
-  modelViewer.addEventListener('touchmove', (event) => {
-    if (!panning || event.touches.length !== 2 || !properties.pan) return;
+  modelViewer.addEventListener(
+    'touchmove',
+    (event) => {
+      if (!panning || event.touches.length !== 2 || !properties.pan) return;
 
-    const { touches } = event;
-    const thisX = 0.5 * (touches[0].clientX + touches[1].clientX);
-    const thisY = 0.5 * (touches[0].clientY + touches[1].clientY);
-    movePan(thisX, thisY);
-  }, true);
+      const { touches } = event;
+      const thisX = 0.5 * (touches[0].clientX + touches[1].clientX);
+      const thisY = 0.5 * (touches[0].clientY + touches[1].clientY);
+      movePan(thisX, thisY);
+    },
+    true,
+  );
 
-  document.addEventListener('mouseup', (event) => {
-    PandaBridge.send('onTouchEnd');
-    recenter(event);
-  }, true);
+  document.addEventListener(
+    'mouseup',
+    (event) => {
+      PandaBridge.send('onTouchEnd');
+      recenter(event);
+    },
+    true,
+  );
 
-  document.addEventListener('touchend', (event) => {
-    PandaBridge.send('onTouchEnd');
-    if (event.touches.length === 0) {
-      recenter(event.changedTouches[0]);
-    }
-  }, true);
+  document.addEventListener(
+    'touchend',
+    (event) => {
+      PandaBridge.send('onTouchEnd');
+      if (event.touches.length === 0) {
+        recenter(event.changedTouches[0]);
+      }
+    },
+    true,
+  );
 }
 
 function goToMarker(marker, notAnimated, takeScreenshot) {
@@ -238,7 +280,9 @@ PandaBridge.init(() => {
   });
 
   PandaBridge.getScreenshot((resultCallback) => {
-    resultCallback(document.querySelector('model-viewer').toDataURL('image/png', 1));
+    resultCallback(
+      document.querySelector('model-viewer').toDataURL('image/png', 1),
+    );
   });
 
   /* Markers */
@@ -258,7 +302,11 @@ PandaBridge.init(() => {
   PandaBridge.setSnapshotData((pandaData) => {
     const { isDefault } = pandaData.params;
 
-    goToMarker(pandaData.data, !isDefault && !properties.animateMarkers, isDefault);
+    goToMarker(
+      pandaData.data,
+      !isDefault && !properties.animateMarkers,
+      isDefault,
+    );
   });
 
   /* Actions */
@@ -295,23 +343,30 @@ PandaBridge.init(() => {
 
       marker = {
         orbit: {
-          theta: currentMarker.orbit.theta
-            + ((nextMarker.orbit.theta - currentMarker.orbit.theta) * rest),
-          phi: currentMarker.orbit.phi
-            + ((nextMarker.orbit.phi - currentMarker.orbit.phi) * rest),
-          radius: currentMarker.orbit.radius
-            + ((nextMarker.orbit.radius - currentMarker.orbit.radius) * rest),
+          theta:
+            currentMarker.orbit.theta +
+            (nextMarker.orbit.theta - currentMarker.orbit.theta) * rest,
+          phi:
+            currentMarker.orbit.phi +
+            (nextMarker.orbit.phi - currentMarker.orbit.phi) * rest,
+          radius:
+            currentMarker.orbit.radius +
+            (nextMarker.orbit.radius - currentMarker.orbit.radius) * rest,
         },
         target: {
-          x: currentMarker.target.x
-            + ((nextMarker.target.x - currentMarker.target.x) * rest),
-          y: currentMarker.target.y
-            + ((nextMarker.target.y - currentMarker.target.y) * rest),
-          z: currentMarker.target.z
-            + ((nextMarker.target.z - currentMarker.target.z) * rest),
+          x:
+            currentMarker.target.x +
+            (nextMarker.target.x - currentMarker.target.x) * rest,
+          y:
+            currentMarker.target.y +
+            (nextMarker.target.y - currentMarker.target.y) * rest,
+          z:
+            currentMarker.target.z +
+            (nextMarker.target.z - currentMarker.target.z) * rest,
         },
-        fieldOfView: currentMarker.fieldOfView
-          + ((nextMarker.fieldOfView - currentMarker.fieldOfView) * rest),
+        fieldOfView:
+          currentMarker.fieldOfView +
+          (nextMarker.fieldOfView - currentMarker.fieldOfView) * rest,
       };
     }
     goToMarker(marker);
