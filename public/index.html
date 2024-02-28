@@ -25,11 +25,109 @@
       :focus-visible polyfill {
         outline: none;
       }
+
+      .hotspot-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+        padding: 10px;
+        background-color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        font-weight: 400;
+        color: black;
+        font-size: 16px;
+        outline: none;
+      }
+
+      .hotspot-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        color: white;
+        font-size: 24px;
+        font-weight: 700;
+        text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      }
+
+      .hotspot {
+        display: block;
+        --hotspot-size: 20px;
+        width: var(--hotspot-size);
+        height: var(--hotspot-size);
+        --hotspot-radius: 10px;
+        border-radius: var(--hotspot-radius);
+        border: none;
+        --hotspot-color: #3b82f6;
+        background-color: var(--hotspot-color);
+        box-sizing: border-box;
+        outline: none;
+      }
+
+      .hotspot:not([data-visible]) {
+        background-color: transparent;
+        border: 3px solid var(--hotspot-color);
+      }
+
+      .hotspot:not([data-visible]) > * {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(calc(-50% + 4px));
+        transition-duration: 0.3s, 0.3s;
+        transition-timing-function: ease, ease;
+        transition-delay: 0s, 0s;
+        transition-property: transform, opacity;
+      }
+
+      .annotation {
+        --annotation-color: black;
+        --annotation-background-color: white;
+        background-color: var(--annotation-background-color);
+        color: var(--annotation-color);
+        font-weight: 500;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+          0 4px 6px -4px rgb(0 0 0 / 0.1);
+        position: absolute;
+        transform: translate(10px, 10px);
+        border-radius: 6px;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-right: 1rem;
+        padding-left: 1rem;
+      }
+
+      :not(:defined) > * {
+        display: none;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      .blink-animation {
+        animation: blink 0.4s ease-in-out;
+      }
     </style>
   </head>
   <body>
     <model-viewer
       loading="eager"
+      data-js-focus-visible
       quick-look-browsers="safari chrome"
     ></model-viewer>
   </body>

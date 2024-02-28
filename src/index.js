@@ -5,12 +5,17 @@ import '@google/model-viewer/dist/model-viewer';
 
 let properties = null;
 let markers = null;
+let lastMarker = null;
 
-function myInit() {
+function myInit(update) {
   const modelViewer = document.querySelector('model-viewer');
   const modelUrl = `${PandaBridge.resolvePath('assets.zip', './')}${
     properties.path
   }`;
+
+  if (!update && PandaBridge.isStudio) {
+    setupAddHotspot();
+  }
 
   PandaBridge.unlisten(PandaBridge.GET_SCREENSHOT);
   PandaBridge.getScreenshot(async (resultCallback) => {
@@ -55,6 +60,22 @@ function myInit() {
     }
   });
 
+  modelViewer.addEventListener('mousedown', () => {
+    PandaBridge.send('onTouchStart');
+  });
+
+  modelViewer.addEventListener('mouseup', () => {
+    PandaBridge.send('onTouchEnd');
+  });
+
+  modelViewer.addEventListener('touchstart', () => {
+    PandaBridge.send('onTouchStart');
+  });
+
+  modelViewer.addEventListener('touchend', () => {
+    PandaBridge.send('onTouchEnd');
+  });
+
   modelViewer.setAttribute('src', modelUrl);
   modelViewer.setAttribute(
     'interaction-prompt',
@@ -64,6 +85,36 @@ function myInit() {
     'interaction-prompt-threshold',
     properties.interactionPromptThreshold,
   );
+  modelViewer.setAttribute('disable-tap', true);
+
+  modelViewer.setAttribute('exposure', properties.exposure);
+  modelViewer.setAttribute('shadow-intensity', properties.shadowIntensity);
+  modelViewer.setAttribute('shadow-softness', properties.shadowSoftness);
+  modelViewer.setAttribute('tone-mapping', properties.toneMapping);
+
+  if (properties.environment === 'custom') {
+    const environmentUrl = PandaBridge.resolvePath('environment.jpg');
+
+    if (environmentUrl) {
+      modelViewer.setAttribute('environment-image', environmentUrl);
+      if (properties.environmentAsSkybox) {
+        modelViewer.setAttribute('skybox-image', environmentUrl);
+        modelViewer.setAttribute(
+          'skybox-height',
+          `${properties.skyboxHeight}${properties.skyboxHeightUnit}`,
+        );
+      } else {
+        modelViewer.removeAttribute('skybox-image');
+        modelViewer.removeAttribute('skybox-height');
+      }
+    } else {
+      modelViewer.removeAttribute('environment-image');
+      modelViewer.removeAttribute('skybox-image');
+      modelViewer.removeAttribute('skybox-height');
+    }
+  } else {
+    modelViewer.setAttribute('environment-image', properties.environment);
+  }
 
   if (properties.cameraControls) {
     modelViewer.setAttribute('camera-controls', true);
@@ -75,6 +126,12 @@ function myInit() {
     modelViewer.setAttribute('min-camera-orbit', 'auto auto 0m');
   } else {
     modelViewer.removeAttribute('min-camera-orbit');
+  }
+
+  if (!properties.pan) {
+    modelViewer.setAttribute('disable-pan', true);
+  } else {
+    modelViewer.removeAttribute('disable-pan');
   }
 
   if (properties.arMode) {
@@ -99,145 +156,170 @@ function myInit() {
     modelViewer.removeAttribute('ios-src');
   }
 
-  // eslint-disable-next-line no-use-before-define
-  activatePanning();
+  if (markers) {
+    const markerIds = {};
+
+    markers.forEach((marker) => {
+      if (marker.type === 'hotspot') {
+        createUpdateHotspot(marker);
+        markerIds[marker.id] = true;
+      }
+    });
+
+    const existingHotspots = modelViewer.querySelectorAll('.hotspot');
+    existingHotspots.forEach((hotspot) => {
+      const id = hotspot.getAttribute('slot').replace('hotspot-', '');
+      if (!markerIds[id]) {
+        hotspot.remove();
+      }
+    });
+  }
 }
 
-function activatePanning() {
+function createUpdateHotspot({
+  position,
+  normal,
+  id,
+  color,
+  size,
+  minOpacity,
+  maxOpacity,
+  showAnnotation,
+  description,
+  annotationColor,
+  annotationTextColor,
+}) {
   const modelViewer = document.querySelector('model-viewer');
-  const tapDistance = 2;
-  let panning = false;
-  let panX;
-  let panY;
-  let startX;
-  let startY;
-  let lastX;
-  let lastY;
-  let metersPerPixel;
+  const hotspotName = `hotspot-${id}`;
 
-  document.addEventListener('contextmenu', (event) => event.preventDefault());
-
-  const startPan = () => {
-    const orbit = modelViewer.getCameraOrbit();
-    const { theta, phi, radius } = orbit;
-    metersPerPixel =
-      (0.75 * radius) / modelViewer.getBoundingClientRect().height;
-    panX = [-Math.cos(theta), 0, Math.sin(theta)];
-    panY = [
-      -Math.cos(phi) * Math.sin(theta),
-      Math.sin(phi),
-      -Math.cos(phi) * Math.cos(theta),
-    ];
-    modelViewer.interactionPrompt = 'none';
-  };
-
-  const movePan = (thisX, thisY) => {
-    const dx = (thisX - lastX) * metersPerPixel;
-    const dy = (thisY - lastY) * metersPerPixel;
-    lastX = thisX;
-    lastY = thisY;
-
-    const target = modelViewer.getCameraTarget();
-    target.x += dx * panX[0] + dy * panY[0];
-    target.y += dx * panX[1] + dy * panY[1];
-    target.z += dx * panX[2] + dy * panY[2];
-    modelViewer.cameraTarget = `${target.x}m ${target.y}m ${target.z}m`;
-  };
-
-  const recenter = (event) => {
-    panning = false;
-    if (
-      Math.abs(event.clientX - startX) > tapDistance ||
-      Math.abs(event.clientY - startY) > tapDistance
-    ) {
-      return;
+  const styleForHotspot = (hotspot) => {
+    if (color !== undefined) {
+      hotspot.style.setProperty('--hotspot-color', color);
     }
-    const rect = modelViewer.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    const hit = modelViewer.positionAndNormalFromPoint(x, y);
-    modelViewer.cameraTarget =
-      hit == null ? 'auto auto auto' : hit.position.toString();
+    if (size !== undefined) {
+      hotspot.style.setProperty('--hotspot-size', `${size}px`);
+      hotspot.style.setProperty('--hotspot-radius', `${size / 2}px`);
+    }
+    if (minOpacity !== undefined) {
+      hotspot.style.setProperty('--min-hotspot-opacity', minOpacity);
+    }
+    if (maxOpacity !== undefined) {
+      hotspot.style.setProperty('--max-hotspot-opacity', maxOpacity);
+    }
   };
 
-  modelViewer.addEventListener(
-    'mousedown',
-    (event) => {
-      PandaBridge.send('onTouchStart');
-      startX = event.clientX;
-      startY = event.clientY;
-      panning =
-        event.button === 2 || event.ctrlKey || event.metaKey || event.shiftKey;
-      if (!panning || !properties.pan) return;
+  const styleForAnnotation = (annotation) => {
+    if (annotationColor !== undefined) {
+      annotation.style.setProperty(
+        '--annotation-background-color',
+        annotationColor,
+      );
+    }
+    if (annotationTextColor !== undefined) {
+      annotation.style.setProperty('--annotation-color', annotationTextColor);
+    }
+  };
 
-      lastX = startX;
-      lastY = startY;
-      startPan();
-      event.stopPropagation();
-    },
-    true,
-  );
+  if (modelViewer.queryHotspot(hotspotName)) {
+    const hotspot = modelViewer.querySelector(`[slot="${hotspotName}"]`);
+    styleForHotspot(hotspot);
 
-  modelViewer.addEventListener(
-    'touchstart',
-    (event) => {
-      PandaBridge.send('onTouchStart');
-      startX = event.touches[0].clientX;
-      startY = event.touches[0].clientY;
-      panning = event.touches.length === 2;
-      if (!panning || !properties.pan) return;
+    modelViewer.updateHotspot({
+      position: `${position.x}m ${position.y}m ${position.z}m`,
+      normal: `${normal.x} ${normal.y} ${normal.z}`,
+      name: hotspotName,
+    });
 
-      const { touches } = event;
-      lastX = 0.5 * (touches[0].clientX + touches[1].clientX);
-      lastY = 0.5 * (touches[0].clientY + touches[1].clientY);
-      startPan();
-    },
-    true,
-  );
+    if (showAnnotation) {
+      let annotation = hotspot.querySelector('.annotation');
 
-  modelViewer.addEventListener(
-    'mousemove',
-    (event) => {
-      if (!panning || !properties.pan) return;
-
-      movePan(event.clientX, event.clientY);
-      event.stopPropagation();
-    },
-    true,
-  );
-
-  modelViewer.addEventListener(
-    'touchmove',
-    (event) => {
-      if (!panning || event.touches.length !== 2 || !properties.pan) return;
-
-      const { touches } = event;
-      const thisX = 0.5 * (touches[0].clientX + touches[1].clientX);
-      const thisY = 0.5 * (touches[0].clientY + touches[1].clientY);
-      movePan(thisX, thisY);
-    },
-    true,
-  );
-
-  document.addEventListener(
-    'mouseup',
-    (event) => {
-      PandaBridge.send('onTouchEnd');
-      recenter(event);
-    },
-    true,
-  );
-
-  document.addEventListener(
-    'touchend',
-    (event) => {
-      PandaBridge.send('onTouchEnd');
-      if (event.touches.length === 0) {
-        recenter(event.changedTouches[0]);
+      if (!annotation) {
+        annotation = document.createElement('div');
+        annotation.classList.add('annotation');
+        hotspot.appendChild(annotation);
       }
-    },
-    true,
-  );
+      styleForAnnotation(annotation);
+      annotation.textContent = description;
+    } else {
+      const annotation = hotspot.querySelector('.annotation');
+      if (annotation) {
+        annotation.remove();
+      }
+    }
+  } else {
+    const hotspot = document.createElement('button');
+    hotspot.classList.add('hotspot');
+    hotspot.setAttribute(
+      'data-position',
+      `${position.x}m ${position.y}m ${position.z}m`,
+    );
+    hotspot.setAttribute('data-normal', `${normal.x} ${normal.y} ${normal.z}`);
+    hotspot.setAttribute('data-visibility-attribute', 'visible');
+    hotspot.setAttribute('slot', hotspotName);
+    styleForHotspot(hotspot);
+
+    if (showAnnotation) {
+      const annotation = document.createElement('div');
+      annotation.classList.add('annotation');
+      styleForAnnotation(annotation);
+      annotation.textContent = description;
+      hotspot.appendChild(annotation);
+    }
+    modelViewer.appendChild(hotspot);
+
+    hotspot.addEventListener('click', () => {
+      PandaBridge.send(PandaBridge.TRIGGER_MARKER, id);
+    });
+  }
+}
+
+function setupAddHotspot() {
+  const isFrench =
+    properties[PandaBridge.LANGUAGE] &&
+    properties[PandaBridge.LANGUAGE].startsWith('fr');
+  const button = document.createElement('button');
+  button.textContent = isFrench ? 'Ajouter un hotspot' : 'Add Hotspot';
+  button.classList.add('hotspot-button');
+  document.body.appendChild(button);
+
+  button.addEventListener('click', () => {
+    const modelViewer = document.querySelector('model-viewer');
+    modelViewer.style.pointerEvents = 'none';
+
+    const hotspotOverlay = document.createElement('div');
+    hotspotOverlay.classList.add('hotspot-overlay');
+    hotspotOverlay.textContent = isFrench
+      ? 'Cliquez pour ajouter un hotspot'
+      : 'Click to add a hotspot';
+    document.body.appendChild(hotspotOverlay);
+
+    const addHotspot = (e) => {
+      hotspotOverlay.removeEventListener('click', addHotspot);
+
+      const hotspotData = modelViewer.positionAndNormalFromPoint(
+        e.clientX,
+        e.clientY,
+      );
+
+      if (hotspotData) {
+        const marker = {
+          ...hotspotData,
+          id: Math.random().toString(36).substr(2, 9),
+          type: 'hotspot',
+        };
+        markers.push(marker);
+
+        /* Don't pass an array for updating only the existing marker */
+        PandaBridge.send(PandaBridge.UPDATED, { markers: marker });
+
+        createUpdateHotspot(marker);
+      }
+
+      hotspotOverlay.remove();
+      modelViewer.style.pointerEvents = '';
+    };
+    hotspotOverlay.addEventListener('click', addHotspot);
+  });
 }
 
 function goToMarker(marker, notAnimated, takeScreenshot) {
@@ -260,6 +342,22 @@ function goToMarker(marker, notAnimated, takeScreenshot) {
   }
 }
 
+function blinkHotspot(id) {
+  const modelViewer = document.querySelector('model-viewer');
+  const hotspot = modelViewer.querySelector(`[slot="hotspot-${id}"]`);
+
+  if (hotspot) {
+    hotspot.addEventListener(
+      'animationend',
+      () => {
+        hotspot.classList.remove('blink-animation');
+      },
+      { once: true },
+    );
+    hotspot.classList.add('blink-animation');
+  }
+}
+
 PandaBridge.init(() => {
   PandaBridge.onLoad((pandaData) => {
     properties = pandaData.properties;
@@ -276,7 +374,7 @@ PandaBridge.init(() => {
     properties = pandaData.properties;
     markers = pandaData.markers;
 
-    myInit();
+    myInit(true);
   });
 
   PandaBridge.getScreenshot((resultCallback) => {
@@ -294,19 +392,34 @@ PandaBridge.init(() => {
     const fieldOfView = modelViewer.getFieldOfView();
 
     if (orbit && target) {
-      return { orbit, target, fieldOfView };
+      return {
+        orbit,
+        target,
+        fieldOfView,
+        type: `${orbit.theta.toFixed(4)}, ${orbit.phi.toFixed(
+          4,
+        )}, ${orbit.radius.toFixed(4)}`,
+      };
     }
     return null;
   });
 
   PandaBridge.setSnapshotData((pandaData) => {
     const { isDefault } = pandaData.params;
+    const { id, type } = pandaData.data;
 
-    goToMarker(
-      pandaData.data,
-      !isDefault && !properties.animateMarkers,
-      isDefault,
-    );
+    if (type === 'hotspot') {
+      if (PandaBridge.isStudio && id !== lastMarker) {
+        blinkHotspot(id);
+        lastMarker = id;
+      }
+    } else {
+      goToMarker(
+        pandaData.data,
+        !isDefault && !properties.animateMarkers,
+        isDefault,
+      );
+    }
   });
 
   /* Actions */
@@ -329,17 +442,25 @@ PandaBridge.init(() => {
     }
   });
 
+  PandaBridge.listen('recenter', () => {
+    const modelViewer = document.querySelector('model-viewer');
+    modelViewer.cameraTarget = 'auto auto auto';
+  });
+
   PandaBridge.synchronize('synchroMarkers', (percent) => {
-    const localPercent = ((markers.length - 1) * percent) / 100;
+    const animationMarkers = markers.filter(
+      (marker) => marker.type !== 'hotspot',
+    );
+    const localPercent = ((animationMarkers.length - 1) * percent) / 100;
 
     const markerIndex = Math.floor(localPercent);
     const rest = localPercent - markerIndex;
 
-    let marker = markers[markerIndex];
+    let marker = animationMarkers[markerIndex];
 
     if (rest !== 0) {
       const currentMarker = marker;
-      const nextMarker = markers[markerIndex + 1];
+      const nextMarker = animationMarkers[markerIndex + 1];
 
       marker = {
         orbit: {

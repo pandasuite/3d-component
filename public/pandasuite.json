@@ -24,25 +24,125 @@
     ],
     "markers": [
       {
-        "hideSystemId": true
+        "hideSystemId": true,
+        "params": [
+          {
+            "id": "color",
+            "name": "Color",
+            "locale_name": {
+              "fr_FR": "Couleur"
+            },
+            "type": "Color",
+            "value": "#3b82f6",
+            "bindable": true,
+            "hidden": "marker.type != 'hotspot'"
+          },
+          {
+            "id": "size",
+            "name": "Size",
+            "locale_name": {
+              "fr_FR": "Taille"
+            },
+            "type": "Integer",
+            "value": 20,
+            "restrict": {
+              "min": 10,
+              "max": 100,
+              "step": 5,
+              "stepShift": 10
+            },
+            "bindable": true,
+            "hidden": "marker.type != 'hotspot'"
+          },
+          {
+            "id": "minOpacity",
+            "name": "Min opacity",
+            "locale_name": {
+              "fr_FR": "Opacité min"
+            },
+            "type": "Float",
+            "value": 0.25,
+            "restrict": {
+              "min": 0.0,
+              "max": 1.0,
+              "step": 0.1,
+              "stepShift": 0.2
+            },
+            "separator": true,
+            "bindable": true,
+            "hidden": "marker.type != 'hotspot'"
+          },
+          {
+            "id": "maxOpacity",
+            "name": "Max opacity",
+            "locale_name": {
+              "fr_FR": "Opacité max"
+            },
+            "type": "Float",
+            "value": 1,
+            "restrict": {
+              "min": 0.0,
+              "max": 1.0,
+              "step": 0.1,
+              "stepShift": 0.2
+            },
+            "bindable": true,
+            "hidden": "marker.type != 'hotspot'"
+          },
+          {
+            "id": "showAnnotation",
+            "name": "Show annotation",
+            "locale_name": {
+              "fr_FR": "Afficher annotation"
+            },
+            "type": "Boolean",
+            "value": false,
+            "hidden": "marker.type != 'hotspot'",
+            "bindable": true,
+            "separator": true
+          },
+          {
+            "id": "description",
+            "name": "Message",
+            "locale_name": {
+              "fr_FR": "Message"
+            },
+            "type": "String",
+            "hidden": "!marker.showAnnotation",
+            "bindable": true
+          },
+          {
+            "id": "annotationColor",
+            "name": "Color",
+            "locale_name": {
+              "fr_FR": "Couleur"
+            },
+            "type": "Color",
+            "value": "#ffffff",
+            "bindable": true,
+            "hidden": "!marker.showAnnotation"
+          },
+          {
+            "id": "annotationTextColor",
+            "name": "Text color",
+            "locale_name": {
+              "fr_FR": "Couleur du texte"
+            },
+            "type": "Color",
+            "value": "#000000",
+            "bindable": true,
+            "hidden": "!marker.showAnnotation"
+          }
+        ]
       }
     ],
     "defaults": {
       "markers": {
         "description": {
-          "value": "[%s, %s, %s]",
+          "value": "[%s]",
           "args": [
             {
-              "key": "orbit.theta",
-              "format": "0.[00000]"
-            },
-            {
-              "key": "orbit.phi",
-              "format": "0.[00000]"
-            },
-            {
-              "key": "orbit.radius",
-              "format": "0.[00000]"
+              "key": "type"
             }
           ]
         }
@@ -61,6 +161,87 @@
       "placeholder": "Astronaut.glb",
       "bindable": true,
       "required": true
+    },
+    {
+      "id": "environment",
+      "name": "Environment image",
+      "locale_name": {
+        "fr_FR": "Image d'environnement"
+      },
+      "type": "Dropdown",
+      "value": "neutral",
+      "items": [
+        {
+          "id": "neutral",
+          "name": "Neutral"
+        },
+        {
+          "id": "legacy",
+          "name": "Legacy"
+        },
+        {
+          "id": "custom",
+          "name": "Custom"
+        }
+      ]
+    },
+    {
+      "id": "environmentAsSkybox",
+      "name": "Use as skybox",
+      "locale_name": {
+        "fr_FR": "Utiliser comme skybox"
+      },
+      "type": "Boolean",
+      "value": false,
+      "hidden": "properties.environment.value !== 'custom'"
+    },
+    {
+      "id": "skyboxHeight",
+      "name": "Skybox height",
+      "locale_name": {
+        "fr_FR": "Hauteur du skybox"
+      },
+      "type": "Float",
+      "value": 0,
+      "restrict": {
+        "min": 0.0,
+        "step": 1,
+        "stepShift": 10
+      },
+      "hidden": "properties.environment.value !== 'custom' || !properties.environmentAsSkybox.value"
+    },
+    {
+      "id": "skyboxHeightUnit",
+      "name": "Unit",
+      "locale_name": {
+        "fr_FR": "Unité"
+      },
+      "type": "Dropdown",
+      "value": "m",
+      "items": [
+        {
+          "id": "m",
+          "name": "Meters",
+          "locale_name": {
+            "fr_FR": "Mètres"
+          }
+        },
+        {
+          "id": "cm",
+          "name": "Centimeters",
+          "locale_name": {
+            "fr_FR": "Centimètres"
+          }
+        },
+        {
+          "id": "mm",
+          "name": "Millimeters",
+          "locale_name": {
+            "fr_FR": "Millimètres"
+          }
+        }
+      ],
+      "hidden": "properties.environment.value !== 'custom' || !properties.environmentAsSkybox.value"
     },
     {
       "id": "arMode",
@@ -131,8 +312,80 @@
         "fr_FR": "Permettre le déplacement"
       },
       "type": "Boolean",
-      "value": false,
+      "value": true,
       "bindable": true
+    },
+    {
+      "id": "exposure",
+      "name": "Exposure",
+      "locale_name": {
+        "fr_FR": "Exposition"
+      },
+      "type": "Float",
+      "value": 1,
+      "restrict": {
+        "min": 0.0,
+        "max": 2.0,
+        "step": 0.01,
+        "stepShift": 0.1
+      },
+      "bindable": true,
+      "separator": true
+    },
+    {
+      "id": "shadowIntensity",
+      "name": "Shadow intensity",
+      "locale_name": {
+        "fr_FR": "Intensité des ombres"
+      },
+      "type": "Float",
+      "value": 0,
+      "restrict": {
+        "min": 0.0,
+        "max": 2.0,
+        "step": 0.01,
+        "stepShift": 0.1
+      },
+      "bindable": true
+    },
+    {
+      "id": "shadowSoftness",
+      "name": "Shadow softness",
+      "locale_name": {
+        "fr_FR": "Douceur des ombres"
+      },
+      "type": "Float",
+      "value": 1,
+      "restrict": {
+        "min": 0.0,
+        "max": 1.0,
+        "step": 0.01,
+        "stepShift": 0.1
+      },
+      "bindable": true
+    },
+    {
+      "id": "toneMapping",
+      "name": "Tone mapping",
+      "locale_name": {
+        "fr_FR": "Mapping de ton"
+      },
+      "type": "Dropdown",
+      "value": "aces",
+      "items": [
+        {
+          "id": "aces",
+          "name": "ACES"
+        },
+        {
+          "id": "agx",
+          "name": "AGX"
+        },
+        {
+          "id": "commerce",
+          "name": "Commerce"
+        }
+      ]
     },
     {
       "id": "interactionPrompt",
@@ -249,6 +502,13 @@
       "locale_name": {
         "fr_FR": "Activer l'AR"
       }
+    },
+    {
+      "id": "recenter",
+      "name": "Recenter",
+      "locale_name": {
+        "fr_FR": "Recentrer"
+      }
     }
   ],
 
@@ -265,8 +525,24 @@
   "resources": [
     {
       "id": "assets.zip",
+      "name": "Source",
+      "locale_name": {
+        "fr_FR": "Source"
+      },
       "type": "Zip",
+      "localization": false,
       "required": true
+    },
+    {
+      "id": "environment.jpg",
+      "name": "Environment",
+      "locale_name": {
+        "fr_FR": "Environnement"
+      },
+      "type": "Image",
+      "localization": false,
+      "required": true,
+      "hidden": "properties.environment.value !== 'custom'"
     }
   ]
 }
