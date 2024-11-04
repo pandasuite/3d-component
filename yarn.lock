@@ -23,10 +23,10 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@google/model-viewer@^3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@google/model-viewer/-/model-viewer-3.4.0.tgz#dd3fd098b85ae5953a93f8eeef0e62434a0e7cc0"
-  integrity sha512-ZGZktE+uy7CiNOSrFdR1bTZDe9nfel2h8gWiRY6D5Eit77RAzIRYnPlkdQBoLSo8nnYS0faL/Z1tKP7nntvoGg==
+"@google/model-viewer@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@google/model-viewer/-/model-viewer-4.0.0.tgz#3d009044f305eb3241cd454d2711b88b6a1b636e"
+  integrity sha512-hf4mixP178gGtvWQq97a0uULr7k98BwJGRU3lvt12XnurOdLmZA/RPdW4tPsINNNQxZvmvQsjud4lZWre6WGNw==
   dependencies:
     "@monogrid/gainmap-js" "^3.0.1"
     lit "^2.7.2"
