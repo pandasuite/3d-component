@@ -1,29 +1,25 @@
 {
   "name": "3d-component",
   "version": "2.0.2",
+  "type": "module",
   "main": "index.js",
   "repository": "https://github.com/pandasuite/3d-component.git",
   "private": true,
   "scripts": {
-    "start": "webpack-dev-server --open",
-    "build": "rm -rf ./pandasuite-component.zip && webpack --mode production --devtool none && cd build && zip -r -X '../pandasuite-component.zip' *",
+    "start": "vite",
+    "build": "rm -rf ./pandasuite-component.zip && vite build && cd build && zip -r -X '../pandasuite-component.zip' *",
     "release": "yarn build && release-it --no-npm.publish"
   },
   "devDependencies": {
-    "clean-webpack-plugin": "^3.0.0",
-    "copy-webpack-plugin": "^6.0.2",
-    "eslint": "^7.2.0",
-    "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-plugin-import": "^2.21.2",
-    "release-it": "^13.6.3",
-    "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.11.0"
+    "eslint": "^9.18.0",
+    "release-it": "^19.2.4",
+    "vite": "^7.3.1"
   },
   "dependencies": {
-    "@google/model-viewer": "^4.0.0",
+    "@google/model-viewer": "^4.1.0",
     "focus-visible": "^5.2.0",
-    "pandasuite-bridge": "^4.3.3"
+    "pandasuite-bridge": "^5.0.5",
+    "three": "^0.172.0"
   },
   "release-it": {
     "github": {
@@ -38,9 +34,9 @@
       ">0.2%",
       "not dead",
       "not op_mini all",
-      "IE >= 9",
-      "Android > 0",
-      "iOS > 0"
+      "Chrome >= 87",
+      "Android >= 5",
+      "iOS >= 12"
     ],
     "development": [
       "last 1 chrome version",

@@ -449,6 +449,22 @@
       "name": "Starting play",
       "locale_name": {
         "fr_FR": "Commence lecture"
+      },
+      "queryable": {
+        "animation": 1,
+        "__desc_animation": {
+          "name": "Animation #",
+          "locale_name": {
+            "fr_FR": "Animation n°"
+          }
+        },
+        "animationName": "",
+        "__desc_animationName": {
+          "name": "Animation name",
+          "locale_name": {
+            "fr_FR": "Nom de l'animation"
+          }
+        }
       }
     },
     {
@@ -456,6 +472,22 @@
       "name": "Pause playing",
       "locale_name": {
         "fr_FR": "Mise en pause"
+      },
+      "queryable": {
+        "animation": 1,
+        "__desc_animation": {
+          "name": "Animation #",
+          "locale_name": {
+            "fr_FR": "Animation n°"
+          }
+        },
+        "animationName": "",
+        "__desc_animationName": {
+          "name": "Animation name",
+          "locale_name": {
+            "fr_FR": "Nom de l'animation"
+          }
+        }
       }
     },
     {
@@ -473,6 +505,52 @@
       }
     },
     {
+      "id": "onAppendAnimation",
+      "name": "Append animation",
+      "locale_name": {
+        "fr_FR": "Ajout d'animation"
+      },
+      "queryable": {
+        "animation": 1,
+        "__desc_animation": {
+          "name": "Animation #",
+          "locale_name": {
+            "fr_FR": "Animation n°"
+          }
+        },
+        "animationName": "",
+        "__desc_animationName": {
+          "name": "Animation name",
+          "locale_name": {
+            "fr_FR": "Nom de l'animation"
+          }
+        }
+      }
+    },
+    {
+      "id": "onDetachAnimation",
+      "name": "Detach animation",
+      "locale_name": {
+        "fr_FR": "Suppression d'animation"
+      },
+      "queryable": {
+        "animation": 1,
+        "__desc_animation": {
+          "name": "Animation #",
+          "locale_name": {
+            "fr_FR": "Animation n°"
+          }
+        },
+        "animationName": "",
+        "__desc_animationName": {
+          "name": "Animation name",
+          "locale_name": {
+            "fr_FR": "Nom de l'animation"
+          }
+        }
+      }
+    },
+    {
       "id": "arError",
       "name": "AR Error",
       "locale_name": {
@@ -487,7 +565,56 @@
       "name": "Play",
       "locale_name": {
         "fr_FR": "Lecture"
-      }
+      },
+      "params": [
+        {
+          "id": "animation",
+          "name": "Animation #",
+          "locale_name": {
+            "fr_FR": "Animation n°"
+          },
+          "type": "Integer",
+          "value": 1,
+          "restrict": {
+            "min": 1,
+            "step": 1,
+            "stepShift": 10
+          },
+          "bindable": true
+        },
+        {
+          "id": "pingpong",
+          "name": "Ping-pong",
+          "locale_name": {
+            "fr_FR": "Ping-pong"
+          },
+          "type": "Boolean",
+          "value": false
+        },
+        {
+          "id": "loop",
+          "name": "Loop",
+          "locale_name": {
+            "fr_FR": "En boucle"
+          },
+          "type": "Boolean",
+          "value": true,
+          "hidden": "params.pingpong.value"
+        },
+        {
+          "id": "repetitions",
+          "name": "Repetitions",
+          "locale_name": {
+            "fr_FR": "Répétitions"
+          },
+          "type": "Integer",
+          "restrict": {
+            "min": 1.0
+          },
+          "value": 1,
+          "hidden": "params.loop.value || params.pingpong.value"
+        }
+      ]
     },
     {
       "id": "pause",
@@ -509,6 +636,217 @@
       "locale_name": {
         "fr_FR": "Recentrer"
       }
+    },
+    {
+      "id": "appendAnimation",
+      "name": "Append animation",
+      "locale_name": {
+        "fr_FR": "Ajouter animation"
+      },
+      "params": [
+        {
+          "id": "animation",
+          "name": "Animation #",
+          "locale_name": {
+            "fr_FR": "Animation n°"
+          },
+          "type": "Integer",
+          "value": 1,
+          "restrict": {
+            "min": 1,
+            "step": 1,
+            "stepShift": 10
+          },
+          "bindable": true
+        },
+        {
+          "id": "weight",
+          "name": "Weight",
+          "locale_name": {
+            "fr_FR": "Poids"
+          },
+          "type": "Float",
+          "value": 1,
+          "restrict": {
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01,
+            "stepShift": 0.1
+          },
+          "bindable": true,
+          "hidden": "params.fade.value"
+        },
+        {
+          "id": "timeScale",
+          "name": "Speed",
+          "locale_name": {
+            "fr_FR": "Vitesse"
+          },
+          "type": "Float",
+          "value": 1,
+          "bindable": true
+        },
+        {
+          "id": "pingpong",
+          "name": "Ping-pong",
+          "locale_name": {
+            "fr_FR": "Ping-pong"
+          },
+          "type": "Boolean",
+          "value": false,
+          "separator": true
+        },
+        {
+          "id": "loop",
+          "name": "Loop",
+          "locale_name": {
+            "fr_FR": "En boucle"
+          },
+          "type": "Boolean",
+          "value": true,
+          "hidden": "params.pingpong.value"
+        },
+        {
+          "id": "repetitions",
+          "name": "Repetitions",
+          "locale_name": {
+            "fr_FR": "Répétitions"
+          },
+          "type": "Integer",
+          "restrict": {
+            "min": 1.0
+          },
+          "value": 1,
+          "hidden": "params.loop.value || params.pingpong.value"
+        },
+        {
+          "id": "fade",
+          "name": "Fade in",
+          "locale_name": {
+            "fr_FR": "Fondu entrant"
+          },
+          "type": "Boolean",
+          "value": false,
+          "separator": true
+        },
+        {
+          "id": "fadeSeconds",
+          "name": "Fade in duration",
+          "locale_name": {
+            "fr_FR": "Durée du fondu entrant"
+          },
+          "type": "Float",
+          "value": 1.25,
+          "restrict": {
+            "min": 0.0,
+            "step": 0.05,
+            "stepShift": 0.25
+          },
+          "hidden": "!params.fade.value",
+          "bindable": true
+        },
+        {
+          "id": "warp",
+          "name": "Warp speed",
+          "locale_name": {
+            "fr_FR": "Transition de vitesse"
+          },
+          "type": "Boolean",
+          "value": false,
+          "separator": true
+        },
+        {
+          "id": "warpSeconds",
+          "name": "Warp duration",
+          "locale_name": {
+            "fr_FR": "Durée de transition"
+          },
+          "type": "Float",
+          "value": 1.25,
+          "restrict": {
+            "min": 0.0,
+            "step": 0.05,
+            "stepShift": 0.25
+          },
+          "hidden": "!params.warp.value",
+          "bindable": true
+        },
+        {
+          "id": "relativeWarp",
+          "name": "Relative warp",
+          "locale_name": {
+            "fr_FR": "Transition relative"
+          },
+          "type": "Boolean",
+          "value": true,
+          "hidden": "!params.warp.value"
+        },
+        {
+          "id": "time",
+          "name": "Start time",
+          "locale_name": {
+            "fr_FR": "Temps de départ"
+          },
+          "type": "Float",
+          "value": 0,
+          "restrict": {
+            "min": 0.0,
+            "step": 0.05,
+            "stepShift": 0.25
+          },
+          "separator": true,
+          "bindable": true
+        }
+      ]
+    },
+    {
+      "id": "detachAnimation",
+      "name": "Detach animation",
+      "locale_name": {
+        "fr_FR": "Retirer animation"
+      },
+      "params": [
+        {
+          "id": "animation",
+          "name": "Animation #",
+          "locale_name": {
+            "fr_FR": "Animation n°"
+          },
+          "type": "Integer",
+          "value": 1,
+          "restrict": {
+            "min": 1,
+            "step": 1,
+            "stepShift": 10
+          },
+          "bindable": true
+        },
+        {
+          "id": "fade",
+          "name": "Fade out",
+          "locale_name": {
+            "fr_FR": "Fondu sortant"
+          },
+          "type": "Boolean",
+          "value": true
+        },
+        {
+          "id": "fadeSeconds",
+          "name": "Fade out duration",
+          "locale_name": {
+            "fr_FR": "Durée du fondu sortant"
+          },
+          "type": "Float",
+          "value": 1.5,
+          "restrict": {
+            "min": 0.0,
+            "step": 0.05,
+            "stepShift": 0.25
+          },
+          "hidden": "!params.fade.value",
+          "bindable": true
+        }
+      ]
     }
   ],
 

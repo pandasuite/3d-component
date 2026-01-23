@@ -6,6 +6,217 @@ import '@google/model-viewer/dist/model-viewer';
 let properties = null;
 let markers = null;
 let lastMarker = null;
+let hasLoaded = false;
+let lastAnimationName = null;
+let lastAppendAnimationPayload = null;
+let lastDetachAnimationPayload = null;
+
+function clampInt(value, min, max) {
+  const integer = Number.parseInt(value, 10);
+  if (Number.isNaN(integer)) return null;
+  return Math.min(Math.max(integer, min), max);
+}
+
+function clampFloat(value, min, max) {
+  const float = Number.parseFloat(value);
+  if (Number.isNaN(float)) return null;
+  if (min != null && float < min) return min;
+  if (max != null && float > max) return max;
+  return float;
+}
+
+function pickActionParams(args) {
+  return Array.isArray(args) ? args[0] : args;
+}
+
+function getAnimationNameByIndex1(modelViewer, animationIndex1) {
+  const availableAnimations = modelViewer.availableAnimations || [];
+  if (availableAnimations.length === 0) return null;
+
+  const index1 = clampInt(animationIndex1, 1, availableAnimations.length) || 1;
+  return availableAnimations[index1 - 1];
+}
+
+function playWithAnimationIndex(args) {
+  const modelViewer = document.querySelector('model-viewer');
+  const availableAnimations = modelViewer.availableAnimations || [];
+
+  const params = pickActionParams(args);
+  const animationIndex1 =
+    params && typeof params === 'object' ? params.animation : params;
+  const loop = params && typeof params === 'object' ? params.loop : true;
+  const repetitions =
+    params && typeof params === 'object' ? params.repetitions : 1;
+  const pingpong =
+    params && typeof params === 'object' ? params.pingpong : false;
+
+  if (availableAnimations.length === 0) {
+    if (!hasLoaded) {
+      modelViewer.addEventListener(
+        'load',
+        () => {
+          playWithAnimationIndex(args);
+        },
+        { once: true },
+      );
+    } else {
+      modelViewer.play();
+    }
+    return;
+  }
+
+  const options = {};
+
+  if (pingpong) {
+    options.pingpong = true;
+    // pingpong loops infinitely in model-viewer
+  } else if (!loop) {
+    options.repetitions = clampInt(repetitions, 1, 10_000) || 1;
+  }
+
+  modelViewer.animationName =
+    getAnimationNameByIndex1(modelViewer, animationIndex1) ||
+    availableAnimations[0];
+  lastAnimationName = modelViewer.animationName;
+  modelViewer.play(options);
+}
+
+function getCurrentAnimationPayload() {
+  const modelViewer = document.querySelector('model-viewer');
+  const availableAnimations = modelViewer.availableAnimations || [];
+
+  const name =
+    modelViewer.animationName || lastAnimationName || availableAnimations[0] || '';
+  const index0 = name ? availableAnimations.indexOf(name) : -1;
+
+  return {
+    animation: index0 >= 0 ? index0 + 1 : 1,
+    animationName: name,
+  };
+}
+
+function appendAnimationByIndex(args) {
+  const modelViewer = document.querySelector('model-viewer');
+  const availableAnimations = modelViewer.availableAnimations || [];
+  const params = pickActionParams(args) || {};
+
+  if (availableAnimations.length === 0) {
+    if (!hasLoaded) {
+      modelViewer.addEventListener(
+        'load',
+        () => {
+          appendAnimationByIndex(args);
+        },
+        { once: true },
+      );
+    }
+    return;
+  }
+
+  if (typeof modelViewer.appendAnimation !== 'function') {
+    return;
+  }
+
+  const animationName =
+    getAnimationNameByIndex1(modelViewer, params.animation) ||
+    availableAnimations[0];
+
+  const loop = params.loop !== undefined ? params.loop : true;
+  const repetitions = params.repetitions;
+  const pingpong = !!params.pingpong;
+
+  const fadeEnabled = !!params.fade;
+  const fadeSeconds = clampFloat(params.fadeSeconds, 0, null);
+
+  const warpEnabled = !!params.warp;
+  const warpSeconds = clampFloat(params.warpSeconds, 0, null);
+  const relativeWarp = params.relativeWarp !== false;
+
+  const weight = clampFloat(params.weight, 0, 1);
+  const timeScale = clampFloat(params.timeScale, null, null);
+  const time = clampFloat(params.time, 0, null);
+
+  const options = {};
+
+  if (fadeEnabled) {
+    options.fade = fadeSeconds != null ? fadeSeconds : true;
+  } else if (weight != null) {
+    options.weight = weight;
+  }
+
+  if (timeScale != null) {
+    options.timeScale = timeScale;
+  }
+
+  if (warpEnabled) {
+    options.warp = warpSeconds != null ? warpSeconds : true;
+    options.relativeWarp = relativeWarp;
+  }
+
+  if (time != null) {
+    options.time = time;
+  }
+
+  if (pingpong) {
+    options.pingpong = true;
+    // pingpong loops infinitely in model-viewer
+  } else if (!loop) {
+    options.repetitions = clampInt(repetitions, 1, 10_000) || 1;
+  }
+
+  lastAppendAnimationPayload = {
+    animation: availableAnimations.indexOf(animationName) + 1,
+    animationName,
+  };
+
+  modelViewer.appendAnimation(animationName, options);
+}
+
+function detachAnimationByIndex(args) {
+  const modelViewer = document.querySelector('model-viewer');
+  const availableAnimations = modelViewer.availableAnimations || [];
+  const params = pickActionParams(args) || {};
+
+  if (availableAnimations.length === 0) {
+    if (!hasLoaded) {
+      modelViewer.addEventListener(
+        'load',
+        () => {
+          detachAnimationByIndex(args);
+        },
+        { once: true },
+      );
+    }
+    return;
+  }
+
+  if (typeof modelViewer.detachAnimation !== 'function') {
+    return;
+  }
+
+  const animationName =
+    getAnimationNameByIndex1(modelViewer, params.animation) ||
+    availableAnimations[0];
+
+  const fadeEnabled = params.fade !== false;
+  const fadeSeconds = clampFloat(params.fadeSeconds, 0, null);
+
+  let options;
+  if (!fadeEnabled) {
+    options = { fade: false };
+  } else if (fadeSeconds != null && fadeSeconds !== 1.5) {
+    options = { fade: fadeSeconds };
+  } else {
+    options = undefined;
+  }
+
+  lastDetachAnimationPayload = {
+    animation: availableAnimations.indexOf(animationName) + 1,
+    animationName,
+  };
+
+  modelViewer.detachAnimation(animationName, options);
+}
 
 function myInit(update) {
   const modelViewer = document.querySelector('model-viewer');
@@ -28,6 +239,7 @@ function myInit(update) {
   });
 
   modelViewer.addEventListener('load', () => {
+    hasLoaded = true;
     PandaBridge.send(PandaBridge.INITIALIZED);
     PandaBridge.send('modelLoaded');
   });
@@ -47,11 +259,19 @@ function myInit(update) {
   });
 
   modelViewer.addEventListener('play', () => {
-    PandaBridge.send('onStartingPlay');
+    PandaBridge.send('onStartingPlay', [getCurrentAnimationPayload()]);
   });
 
   modelViewer.addEventListener('pause', () => {
-    PandaBridge.send('onPausePlaying');
+    PandaBridge.send('onPausePlaying', [getCurrentAnimationPayload()]);
+  });
+
+  modelViewer.addEventListener('append-animation', () => {
+    PandaBridge.send('onAppendAnimation', [lastAppendAnimationPayload || {}]);
+  });
+
+  modelViewer.addEventListener('detach-animation', () => {
+    PandaBridge.send('onDetachAnimation', [lastDetachAnimationPayload || {}]);
   });
 
   modelViewer.addEventListener('ar-status', (event) => {
@@ -424,12 +644,20 @@ PandaBridge.init(() => {
 
   /* Actions */
 
-  PandaBridge.listen('play', () => {
-    document.querySelector('model-viewer').play();
+  PandaBridge.listen('play', (args) => {
+    playWithAnimationIndex(args);
   });
 
   PandaBridge.listen('pause', () => {
     document.querySelector('model-viewer').pause();
+  });
+
+  PandaBridge.listen('appendAnimation', (args) => {
+    appendAnimationByIndex(args);
+  });
+
+  PandaBridge.listen('detachAnimation', (args) => {
+    detachAnimationByIndex(args);
   });
 
   PandaBridge.listen('activateAR', () => {
