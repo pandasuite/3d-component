@@ -3,6 +3,11 @@ import PandaBridge from 'pandasuite-bridge';
 import 'focus-visible';
 import '@google/model-viewer/dist/model-viewer';
 
+import {
+  applyGoToMarkerInterpolationDecay,
+  requestGoToMarkerScreenshot,
+} from './goToMarkerCamera.js';
+
 let properties = null;
 let markers = null;
 let lastMarker = null;
@@ -86,7 +91,10 @@ function getCurrentAnimationPayload() {
   const availableAnimations = modelViewer.availableAnimations || [];
 
   const name =
-    modelViewer.animationName || lastAnimationName || availableAnimations[0] || '';
+    modelViewer.animationName ||
+    lastAnimationName ||
+    availableAnimations[0] ||
+    '';
   const index0 = name ? availableAnimations.indexOf(name) : -1;
 
   return {
@@ -542,23 +550,29 @@ function setupAddHotspot() {
   });
 }
 
-function goToMarker(marker, notAnimated, takeScreenshot) {
+function goToMarker(marker, notAnimated, takeScreenshot, interpolationDecay) {
   const modelViewer = document.querySelector('model-viewer');
   const { orbit, target, fieldOfView } = marker;
 
-  if (notAnimated) {
-    modelViewer.jumpCameraToGoal();
+  if (!notAnimated) {
+    const safeInterpolationDecay = clampInt(interpolationDecay, 1, 10000);
+    applyGoToMarkerInterpolationDecay(modelViewer, safeInterpolationDecay);
   }
+
   modelViewer.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius}m`;
   modelViewer.cameraTarget = `${target.x}m ${target.y}m ${target.z}m`;
   modelViewer.fieldOfView = fieldOfView;
 
+  if (notAnimated) {
+    modelViewer.jumpCameraToGoal();
+  }
+
   if (takeScreenshot) {
-    setTimeout(() => {
+    requestGoToMarkerScreenshot(modelViewer, () => {
       if (PandaBridge.isStudio) {
         PandaBridge.takeScreenshot();
       }
-    }, 300);
+    });
   }
 }
 
@@ -625,7 +639,7 @@ PandaBridge.init(() => {
   });
 
   PandaBridge.setSnapshotData((pandaData) => {
-    const { isDefault } = pandaData.params;
+    const { isDefault, interpolationDecay } = pandaData.params || {};
     const { id, type } = pandaData.data;
 
     if (type === 'hotspot') {
@@ -638,6 +652,7 @@ PandaBridge.init(() => {
         pandaData.data,
         !isDefault && !properties.animateMarkers,
         isDefault,
+        interpolationDecay,
       );
     }
   });

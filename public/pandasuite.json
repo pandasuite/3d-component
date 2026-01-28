@@ -10,7 +10,26 @@
         "name": "Change Position",
         "locale_name": {
           "fr_FR": "Changement position"
-        }
+        },
+        "params": [
+          {
+            "id": "interpolationDecay",
+            "name": "Interpolation decay (ms)",
+            "locale_name": {
+              "fr_FR": "Temps d'interpolation (ms)"
+            },
+            "type": "Integer",
+            "value": 50,
+            "restrict": {
+              "min": 1,
+              "max": 10000,
+              "step": 10,
+              "stepShift": 100
+            },
+            "hidden": "!properties.animateMarkers.value",
+            "bindable": true
+          }
+        ]
       }
     ],
     "events": [
