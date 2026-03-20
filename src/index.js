@@ -246,6 +246,12 @@ function myInit(update) {
     fileReader.readAsDataURL(blob);
   });
 
+  if (modelViewer.shadowRoot) {
+    const style = document.createElement('style');
+    style.textContent = '.userInput { outline: none !important; }';
+    modelViewer.shadowRoot.appendChild(style);
+  }
+
   modelViewer.addEventListener('load', () => {
     hasLoaded = true;
     PandaBridge.send(PandaBridge.INITIALIZED);
