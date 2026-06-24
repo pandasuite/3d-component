@@ -87,6 +87,33 @@
         transition-property: transform, opacity;
       }
 
+      .hotspot.has-image {
+        background-color: transparent;
+        border: none;
+        border-radius: 0;
+        width: auto;
+        height: auto;
+      }
+
+      .hotspot.has-image:not([data-visible]) {
+        background-color: transparent;
+        border: none;
+      }
+
+      .hotspot-image {
+        display: block;
+        width: var(--hotspot-size, 20px);
+        height: auto;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      .hotspot.has-image:not([data-visible]) > .hotspot-image {
+        opacity: var(--min-hotspot-opacity, 0.25);
+        transform: none;
+      }
+
       .annotation {
         --annotation-color: black;
         --annotation-background-color: white;

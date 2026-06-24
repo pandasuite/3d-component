@@ -61,6 +61,21 @@
         "hideSystemId": true,
         "params": [
           {
+            "id": "image",
+            "name": "Image",
+            "locale_name": {
+              "fr_FR": "Image"
+            },
+            "type": "Image",
+            "bindable": true,
+            "sizes": ["128w", "256w", "512w"],
+            "hidden": "marker.type != 'hotspot'",
+            "description": "Custom image displayed instead of the colored dot. Sized by the marker size, with its aspect ratio preserved.",
+            "locale_description": {
+              "fr_FR": "Image personnalisée affichée à la place du point coloré. Dimensionnée par la taille du marqueur, ratio conservé."
+            }
+          },
+          {
             "id": "color",
             "name": "Color",
             "locale_name": {
@@ -69,10 +84,10 @@
             "type": "Color",
             "value": "#3b82f6",
             "bindable": true,
-            "hidden": "marker.type != 'hotspot'",
-            "description": "Color of the hotspot marker dot on the 3D model.",
+            "hidden": "marker.type != 'hotspot' || marker.image",
+            "description": "Color of the hotspot marker dot on the 3D model. Hidden when an image is set.",
             "locale_description": {
-              "fr_FR": "Couleur du point de marqueur sur le modèle 3D."
+              "fr_FR": "Couleur du point de marqueur sur le modèle 3D. Masqué quand une image est définie."
             }
           },
           {
@@ -91,9 +106,9 @@
             },
             "bindable": true,
             "hidden": "marker.type != 'hotspot'",
-            "description": "Size in pixels of the hotspot marker dot.",
+            "description": "Size in pixels of the hotspot — the dot diameter, or the image width.",
             "locale_description": {
-              "fr_FR": "Taille en pixels du point de marqueur."
+              "fr_FR": "Taille en pixels du marqueur — diamètre du point, ou largeur de l'image."
             }
           },
           {
@@ -197,6 +212,26 @@
             "description": "Text color of the annotation popup.",
             "locale_description": {
               "fr_FR": "Couleur du texte de la popup d'annotation."
+            }
+          },
+          {
+            "id": "updateCameraMarker",
+            "name": "Marker data",
+            "locale_name": {
+              "fr_FR": "Données du marqueur"
+            },
+            "editorControl": {
+              "type": "button",
+              "action_id": "updateCameraMarker",
+              "name": "Update",
+              "locale_name": {
+                "fr_FR": "Mettre à jour"
+              }
+            },
+            "hidden": "marker.type == 'hotspot'",
+            "description": "Re-capture the current camera view into this camera marker.",
+            "locale_description": {
+              "fr_FR": "Ré-enregistre la vue caméra actuelle dans ce marqueur."
             }
           }
         ]
@@ -878,6 +913,28 @@
       "description": "Reset the camera to its default position and orientation.",
       "locale_description": {
         "fr_FR": "Réinitialiser la caméra à sa position et orientation par défaut."
+      }
+    },
+    {
+      "id": "startAutoRotate",
+      "name": "Start auto-rotate",
+      "locale_name": {
+        "fr_FR": "Démarrer la rotation auto"
+      },
+      "description": "Start automatic rotation of the model and keep it rotating until stopped.",
+      "locale_description": {
+        "fr_FR": "Démarrer la rotation automatique du modèle et la maintenir jusqu'à l'arrêt."
+      }
+    },
+    {
+      "id": "stopAutoRotate",
+      "name": "Stop auto-rotate",
+      "locale_name": {
+        "fr_FR": "Arrêter la rotation auto"
+      },
+      "description": "Stop automatic rotation and keep it stopped (it won't resume on its own).",
+      "locale_description": {
+        "fr_FR": "Arrêter la rotation automatique et la garder arrêtée (elle ne reprend pas toute seule)."
       }
     },
     {
