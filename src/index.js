@@ -11,6 +11,8 @@ import {
 let properties = null;
 let markers = null;
 let lastMarker = null;
+let selectedCameraMarkerId = null;
+let autoRotateOverride = null;
 let hasLoaded = false;
 let lastAnimationName = null;
 let lastAppendAnimationPayload = null;
@@ -374,12 +376,7 @@ function myInit(update) {
     modelViewer.removeAttribute('ar');
   }
 
-  if (properties.autoRotate) {
-    modelViewer.setAttribute('auto-rotate', true);
-    modelViewer.setAttribute('auto-rotate-delay', properties.autoRotateDelay);
-  } else {
-    modelViewer.removeAttribute('auto-rotate');
-  }
+  applyAutoRotate();
 
   if (properties.arMode && properties.arModeIOS) {
     const arModelUrl = `${PandaBridge.resolvePath('assets.zip', './')}${
@@ -410,10 +407,24 @@ function myInit(update) {
   }
 }
 
+// Mirror of the `sizes` on the hotspot `image` param in public/pandasuite.json:
+// the studio builds an `<N>w` srcset per entry; resolveImagePath looks them up by
+// that exact key. Keep the two lists in sync.
+const HOTSPOT_IMG_SIZES = [128, 256, 512];
+
+// Smallest declared width >= the displayed width * dpr, clamped to the largest.
+// Returns the srcset key (e.g. "256w") for PandaBridge.resolveImagePath.
+function pickHotspotImageSize(widthPx) {
+  const target = (Number(widthPx) || 0) * (window.devicePixelRatio || 1);
+  const match = HOTSPOT_IMG_SIZES.find((s) => s >= target);
+  return `${match || HOTSPOT_IMG_SIZES[HOTSPOT_IMG_SIZES.length - 1]}w`;
+}
+
 function createUpdateHotspot({
   position,
   normal,
   id,
+  image,
   color,
   size,
   minOpacity,
@@ -454,9 +465,37 @@ function createUpdateHotspot({
     }
   };
 
+  // Render a custom image inside the hotspot instead of the dot. The <img> sizes
+  // itself (width = --hotspot-size, height auto), so the aspect ratio is kept
+  // with no preload. An absent/unresolved image reverts the marker to the dot.
+  const applyImage = (hotspot) => {
+    const url = image
+      ? PandaBridge.resolveImagePath(image, pickHotspotImageSize(size))
+      : null;
+    let img = hotspot.querySelector('.hotspot-image');
+
+    if (url) {
+      if (!img) {
+        img = document.createElement('img');
+        img.classList.add('hotspot-image');
+        hotspot.insertBefore(img, hotspot.firstChild);
+      }
+      if (img.getAttribute('src') !== url) {
+        img.setAttribute('src', url);
+      }
+      hotspot.classList.add('has-image');
+    } else {
+      if (img) {
+        img.remove();
+      }
+      hotspot.classList.remove('has-image');
+    }
+  };
+
   if (modelViewer.queryHotspot(hotspotName)) {
     const hotspot = modelViewer.querySelector(`[slot="${hotspotName}"]`);
     styleForHotspot(hotspot);
+    applyImage(hotspot);
 
     modelViewer.updateHotspot({
       position: `${position.x}m ${position.y}m ${position.z}m`,
@@ -491,6 +530,7 @@ function createUpdateHotspot({
     hotspot.setAttribute('data-visibility-attribute', 'visible');
     hotspot.setAttribute('slot', hotspotName);
     styleForHotspot(hotspot);
+    applyImage(hotspot);
 
     if (showAnnotation) {
       const annotation = document.createElement('div');
@@ -598,6 +638,49 @@ function blinkHotspot(id) {
   }
 }
 
+function captureCameraData() {
+  const modelViewer = document.querySelector('model-viewer');
+  if (!modelViewer) {
+    return null;
+  }
+
+  const orbit = modelViewer.getCameraOrbit();
+  const target = modelViewer.getCameraTarget();
+  const fieldOfView = modelViewer.getFieldOfView();
+
+  if (orbit && target) {
+    return {
+      orbit,
+      target,
+      fieldOfView,
+      type: `${orbit.theta.toFixed(4)}, ${orbit.phi.toFixed(
+        4,
+      )}, ${orbit.radius.toFixed(4)}`,
+    };
+  }
+  return null;
+}
+
+/* Apply auto-rotation from the action override when set, otherwise from the
+   property. The override lets the start/stop actions survive an onUpdate
+   without the rotation silently resuming. */
+function applyAutoRotate() {
+  const modelViewer = document.querySelector('model-viewer');
+  if (!modelViewer) {
+    return;
+  }
+
+  const enabled =
+    autoRotateOverride !== null ? autoRotateOverride : !!properties.autoRotate;
+
+  if (enabled) {
+    modelViewer.setAttribute('auto-rotate', true);
+    modelViewer.setAttribute('auto-rotate-delay', properties.autoRotateDelay);
+  } else {
+    modelViewer.removeAttribute('auto-rotate');
+  }
+}
+
 PandaBridge.init(() => {
   PandaBridge.onLoad((pandaData) => {
     properties = pandaData.properties;
@@ -625,24 +708,7 @@ PandaBridge.init(() => {
 
   /* Markers */
 
-  PandaBridge.getSnapshotData(() => {
-    const modelViewer = document.querySelector('model-viewer');
-    const orbit = modelViewer.getCameraOrbit();
-    const target = modelViewer.getCameraTarget();
-    const fieldOfView = modelViewer.getFieldOfView();
-
-    if (orbit && target) {
-      return {
-        orbit,
-        target,
-        fieldOfView,
-        type: `${orbit.theta.toFixed(4)}, ${orbit.phi.toFixed(
-          4,
-        )}, ${orbit.radius.toFixed(4)}`,
-      };
-    }
-    return null;
-  });
+  PandaBridge.getSnapshotData(() => captureCameraData());
 
   PandaBridge.setSnapshotData((pandaData) => {
     const { isDefault, interpolationDecay } = pandaData.params || {};
@@ -654,6 +720,7 @@ PandaBridge.init(() => {
         lastMarker = id;
       }
     } else {
+      selectedCameraMarkerId = id;
       goToMarker(
         pandaData.data,
         !isDefault && !properties.animateMarkers,
@@ -661,6 +728,29 @@ PandaBridge.init(() => {
         interpolationDecay,
       );
     }
+  });
+
+  /* Re-capture the current camera view into the selected camera marker, driven
+     by the in-panel "Update" editorControl button. Mirrors the 360 component. */
+  PandaBridge.listen('updateCameraMarker', (args) => {
+    const id = (Array.isArray(args) ? args[0] : args) || selectedCameraMarkerId;
+    if (!id) {
+      return;
+    }
+
+    const data = captureCameraData();
+    if (!data) {
+      return;
+    }
+
+    const updated = { id, ...data };
+    const index = (markers || []).findIndex((m) => String(m.id) === String(id));
+    if (index >= 0) {
+      markers[index] = { ...markers[index], ...updated };
+    }
+
+    /* Don't pass an array for updating only the existing marker */
+    PandaBridge.send(PandaBridge.UPDATED, { markers: updated });
   });
 
   /* Actions */
@@ -694,6 +784,16 @@ PandaBridge.init(() => {
   PandaBridge.listen('recenter', () => {
     const modelViewer = document.querySelector('model-viewer');
     modelViewer.cameraTarget = 'auto auto auto';
+  });
+
+  PandaBridge.listen('startAutoRotate', () => {
+    autoRotateOverride = true;
+    applyAutoRotate();
+  });
+
+  PandaBridge.listen('stopAutoRotate', () => {
+    autoRotateOverride = false;
+    applyAutoRotate();
   });
 
   PandaBridge.synchronize('synchroMarkers', (percent) => {
