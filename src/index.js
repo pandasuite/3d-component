@@ -5,7 +5,11 @@ import '@google/model-viewer/dist/model-viewer';
 
 import {
   applyGoToMarkerInterpolationDecay,
+  cancelGoToMarkerTransitionSettled,
   requestGoToMarkerScreenshot,
+  requestGoToMarkerTransitionSettled,
+  toModelViewerOrbit,
+  toStoredMarkerOrbit,
 } from './goToMarkerCamera.js';
 
 let properties = null;
@@ -13,6 +17,7 @@ let markers = null;
 let lastMarker = null;
 let selectedCameraMarkerId = null;
 let autoRotateOverride = null;
+let isAutoRotatePausedForMarkerTransition = false;
 let hasLoaded = false;
 let lastAnimationName = null;
 let lastAppendAnimationPayload = null;
@@ -34,6 +39,25 @@ function clampFloat(value, min, max) {
 
 function pickActionParams(args) {
   return Array.isArray(args) ? args[0] : args;
+}
+
+function getCurrentTurntableRotation(modelViewer) {
+  const turntableRotation = modelViewer?.turntableRotation;
+  return Number.isFinite(turntableRotation) ? turntableRotation : 0;
+}
+
+function isAutoRotateEnabled() {
+  return autoRotateOverride !== null
+    ? autoRotateOverride
+    : !!properties?.autoRotate;
+}
+
+function serializeCameraOrbit({ theta, phi, radius }) {
+  return `${theta}rad ${phi}rad ${radius}m`;
+}
+
+function serializeCameraTarget({ x, y, z }) {
+  return `${x}m ${y}m ${z}m`;
 }
 
 function getAnimationNameByIndex1(modelViewer, animationIndex1) {
@@ -376,7 +400,7 @@ function myInit(update) {
     modelViewer.removeAttribute('ar');
   }
 
-  applyAutoRotate();
+  applyAutoRotate(modelViewer);
 
   if (properties.arMode && properties.arModeIOS) {
     const arModelUrl = `${PandaBridge.resolvePath('assets.zip', './')}${
@@ -596,17 +620,35 @@ function setupAddHotspot() {
   });
 }
 
-function goToMarker(marker, notAnimated, takeScreenshot, interpolationDecay) {
+function goToMarker(
+  marker,
+  notAnimated,
+  takeScreenshot,
+  interpolationDecay,
+  pauseAutoRotate,
+) {
   const modelViewer = document.querySelector('model-viewer');
+  if (!modelViewer) {
+    return;
+  }
+
   const { orbit, target, fieldOfView } = marker;
+  const playbackOrbit = toModelViewerOrbit(
+    orbit,
+    getCurrentTurntableRotation(modelViewer),
+  );
+
+  if (pauseAutoRotate) {
+    pauseAutoRotateForMarkerTransition(modelViewer);
+  }
 
   if (!notAnimated) {
     const safeInterpolationDecay = clampInt(interpolationDecay, 1, 10000);
     applyGoToMarkerInterpolationDecay(modelViewer, safeInterpolationDecay);
   }
 
-  modelViewer.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius}m`;
-  modelViewer.cameraTarget = `${target.x}m ${target.y}m ${target.z}m`;
+  modelViewer.cameraOrbit = serializeCameraOrbit(playbackOrbit);
+  modelViewer.cameraTarget = serializeCameraTarget(target);
   modelViewer.fieldOfView = fieldOfView;
 
   if (notAnimated) {
@@ -648,30 +690,35 @@ function captureCameraData() {
   const target = modelViewer.getCameraTarget();
   const fieldOfView = modelViewer.getFieldOfView();
 
-  if (orbit && target) {
-    return {
-      orbit,
-      target,
-      fieldOfView,
-      type: `${orbit.theta.toFixed(4)}, ${orbit.phi.toFixed(
-        4,
-      )}, ${orbit.radius.toFixed(4)}`,
-    };
+  if (!orbit || !target) {
+    return null;
   }
-  return null;
+
+  const storedOrbit = toStoredMarkerOrbit(
+    orbit,
+    getCurrentTurntableRotation(modelViewer),
+  );
+
+  return {
+    orbit: storedOrbit,
+    target,
+    fieldOfView,
+    type: `${storedOrbit.theta.toFixed(4)}, ${storedOrbit.phi.toFixed(
+      4,
+    )}, ${storedOrbit.radius.toFixed(4)}`,
+  };
 }
 
 /* Apply auto-rotation from the action override when set, otherwise from the
    property. The override lets the start/stop actions survive an onUpdate
    without the rotation silently resuming. */
-function applyAutoRotate() {
-  const modelViewer = document.querySelector('model-viewer');
+function applyAutoRotate(modelViewer = document.querySelector('model-viewer')) {
   if (!modelViewer) {
     return;
   }
 
   const enabled =
-    autoRotateOverride !== null ? autoRotateOverride : !!properties.autoRotate;
+    isAutoRotateEnabled() && !isAutoRotatePausedForMarkerTransition;
 
   if (enabled) {
     modelViewer.setAttribute('auto-rotate', true);
@@ -679,6 +726,28 @@ function applyAutoRotate() {
   } else {
     modelViewer.removeAttribute('auto-rotate');
   }
+}
+
+function pauseAutoRotateForMarkerTransition(modelViewer) {
+  if (!isAutoRotateEnabled()) {
+    return;
+  }
+
+  isAutoRotatePausedForMarkerTransition = true;
+  applyAutoRotate(modelViewer);
+
+  requestGoToMarkerTransitionSettled(modelViewer, () => {
+    isAutoRotatePausedForMarkerTransition = false;
+    applyAutoRotate(modelViewer);
+  });
+}
+
+/* An explicit start/stop action must win over an in-flight marker transition:
+   drop the pending resume so the override applies now instead of being
+   reverted when the transition settles. */
+function cancelAutoRotateMarkerTransitionPause(modelViewer) {
+  isAutoRotatePausedForMarkerTransition = false;
+  cancelGoToMarkerTransitionSettled(modelViewer);
 }
 
 PandaBridge.init(() => {
@@ -721,11 +790,13 @@ PandaBridge.init(() => {
       }
     } else {
       selectedCameraMarkerId = id;
+      const notAnimated = !isDefault && !properties.animateMarkers;
       goToMarker(
         pandaData.data,
-        !isDefault && !properties.animateMarkers,
+        notAnimated,
         isDefault,
         interpolationDecay,
+        !notAnimated,
       );
     }
   });
@@ -787,13 +858,17 @@ PandaBridge.init(() => {
   });
 
   PandaBridge.listen('startAutoRotate', () => {
+    const modelViewer = document.querySelector('model-viewer');
+    cancelAutoRotateMarkerTransitionPause(modelViewer);
     autoRotateOverride = true;
-    applyAutoRotate();
+    applyAutoRotate(modelViewer);
   });
 
   PandaBridge.listen('stopAutoRotate', () => {
+    const modelViewer = document.querySelector('model-viewer');
+    cancelAutoRotateMarkerTransitionPause(modelViewer);
     autoRotateOverride = false;
-    applyAutoRotate();
+    applyAutoRotate(modelViewer);
   });
 
   PandaBridge.synchronize('synchroMarkers', (percent) => {
